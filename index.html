@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>PAM-DEF Trainer</title>
+<style>
+:root{--bg:#0b1020;--card:#151c30;--card2:#1c2542;--tx:#e9edf9;--mut:#8f98b3;--ac:#7c9aff;--ok:#34d399;--bad:#f87171;--warn:#fbbf24;--br:#2b3557}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:840px;margin:0 auto;padding:16px 16px 90px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 14px}
+.logo{font-weight:800;font-size:18px;letter-spacing:.3px;cursor:pointer;user-select:none}
+.logo span{color:var(--ac)}
+.pill{background:var(--card2);border:1px solid var(--br);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:18px;margin:12px 0}
+h1{font-size:26px;margin:8px 0 4px}
+h2{font-size:18px;margin:0 0 10px}
+.sub{color:var(--mut);font-size:14px;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.mode{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:16px;cursor:pointer;transition:.15s;text-align:left;color:var(--tx);font:inherit;width:100%}
+.mode:hover{border-color:var(--ac);transform:translateY(-1px)}
+.mode .ic{font-size:24px}
+.mode b{display:block;margin:6px 0 2px;font-size:16px}
+.mode small{color:var(--mut)}
+.bar{height:8px;background:#0e1530;border-radius:99px;overflow:hidden;border:1px solid var(--br)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),#4ade80);border-radius:99px}
+.trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--br)}
+.trow:last-child{border-bottom:0}
+.tname{flex:1;min-width:0}
+.tname b{font-size:14px}
+.tname .bar{margin-top:5px}
+.tbtn{background:var(--card2);border:1px solid var(--br);color:var(--tx);border-radius:10px;padding:6px 11px;cursor:pointer;font-size:13px}
+.tbtn:hover{border-color:var(--ac)}
+.qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--mut)}
+.tag{background:var(--card2);border:1px solid var(--br);border-radius:99px;padding:2px 10px}
+.qtext{font-size:17px;font-weight:600;white-space:pre-wrap;margin-bottom:14px}
+.opt{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--br);color:var(--tx);padding:12px 14px;border-radius:12px;margin:8px 0;cursor:pointer;font:inherit;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--ac)}
+.opt.sel{border-color:var(--ac);background:#24356b}
+.opt.ok{border-color:var(--ok);background:rgba(52,211,153,.13)}
+.opt.bad{border-color:var(--bad);background:rgba(248,113,113,.13)}
+.opt:disabled{cursor:default;opacity:1}
+.opt .lt{color:var(--ac);font-weight:700;margin-right:6px}
+.fb{border-radius:12px;padding:14px;margin-top:12px;border:1px solid var(--br);background:var(--card2)}
+.fb.good{border-color:var(--ok)}
+.fb.badf{border-color:var(--bad)}
+.fb .verdict{font-weight:800;font-size:16px;margin-bottom:6px}
+.fb .verdict.g{color:var(--ok)}.fb .verdict.b{color:var(--bad)}
+.fb .ans{font-size:14px;margin-bottom:6px}
+.fb .exp{font-size:14px;color:#c6cde4}
+.warnnote{color:var(--warn)}
+.btn{background:var(--ac);border:0;color:#0b1020;font-weight:700;padding:12px 22px;border-radius:12px;cursor:pointer;font-size:15px;margin-top:12px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--br)}
+.btn:disabled{opacity:.4;cursor:default}
+.rowbtns{display:flex;gap:10px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{background:var(--card2);border:1px solid var(--br);color:var(--mut);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:13px}
+.chip.on{border-color:var(--ac);color:var(--tx);background:#24356b}
+.search{width:100%;background:var(--card2);border:1px solid var(--br);border-radius:12px;color:var(--tx);padding:11px 14px;font:inherit;margin:6px 0}
+.bcard{cursor:pointer}
+.bcard .rev{margin-top:10px;border-top:1px dashed var(--br);padding-top:10px;font-size:14px}
+.bcard .rev .a{color:var(--ok);font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:99px;margin-right:8px}
+.mrow{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.mrow .ml{flex:1;min-width:200px;background:var(--card2);border:1px solid var(--br);border-radius:10px;padding:9px 12px;font-size:14px}
+.mrow select{flex:1;min-width:200px;background:var(--card2);border:1px solid var(--br);border-radius:10px;color:var(--tx);padding:9px;font:inherit;font-size:14px}
+.mrow select.ok{border-color:var(--ok)}.mrow select.bad{border-color:var(--bad)}
+.seqzone{min-height:44px;border:1px dashed var(--br);border-radius:12px;padding:8px;margin-bottom:10px}
+.seqzone .empty{color:var(--mut);font-size:13px;padding:6px}
+.step{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--br);color:var(--tx);padding:10px 12px;border-radius:10px;margin:6px 0;cursor:pointer;font:inherit;font-size:14px}
+.step:hover{border-color:var(--ac)}
+.step .num{color:var(--ac);font-weight:700;margin-right:8px}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--warn)}
+.big{font-size:44px;font-weight:800}
+.passbadge{display:inline-block;padding:6px 16px;border-radius:99px;font-weight:800;margin:8px 0}
+.pb-pass{background:rgba(52,211,153,.15);color:var(--ok);border:1px solid var(--ok)}
+.pb-fail{background:rgba(248,113,113,.15);color:var(--bad);border:1px solid var(--bad)}
+.small{font-size:13px;color:var(--mut)}
+a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline}
+.acct{cursor:pointer;border-color:var(--ac);color:var(--tx);font:inherit;font-size:13px}
+.acct:hover{background:#24356b}
+.acct.on{color:var(--ok);border-color:var(--ok)}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+.hint{font-size:13px;color:var(--warn);margin-bottom:8px}
+.statline{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0}
+.statline div b{font-size:22px;display:block}
+.statline div span{color:var(--mut);font-size:13px}
+</style>
+<div class="wrap">
+  <div class="top">
+    <div class="logo" onclick="goHome()">🔐 PAM-DEF <span>Trainer</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="pill" id="toppill"></div>
+      <button class="pill acct" id="acctBtn" onclick="acctClick()" style="display:none">Sign in to sync</button>
+    </div>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const T={S:"Safes & Permissions",M:"Master Policy & Dual Control",C:"Platforms & CPM",P:"PSM & Sessions",A:"PTA & Monitoring",V:"Vault Admin & HA",D:"Backup & DR",U:"Users, LDAP & Auth",O:"Accounts & Onboarding",R:"Reports & Auditing"};
+const QUESTIONS=[
+{n:1,t:T.S,y:"mc",q:"If a user is a member of more than one group that has authorizations on a safe, by default that user is granted ________.",o:["the vault will not allow this situation to occur","only those permissions that exist on the group added to the safe first","only those permissions that exist in all groups to which the user belongs","the cumulative permissions of all groups to which that user belongs"],a:[3],e:"Default behavior = cumulative permissions of all groups. Only the safe's 'Exclusive' option restricts to the first-added group."},
+{n:2,t:T.U,y:"mc",q:"It is possible to control the hours of the day during which a user may log into the vault.",o:["TRUE","FALSE"],a:[0],e:"Time Restrictions let admins define the days and hours users (or groups) can access the Vault."},
+{n:3,t:T.U,y:"multi",q:"VAULT authorizations may be granted to ________.",o:["Vault Users","Vault Groups","LDAP Users","LDAP Groups"],a:[0,2],e:"Vault-level authorizations go to USERS only (not groups, not inherited) and are set via the PrivateArk Client. SAFE authorizations can go to users AND groups."},
+{n:4,t:T.C,y:"mc",q:"What is the purpose of the Interval setting in a CPM policy?",o:["To control how often the CPM looks for System Initiated CPM work","To control how often the CPM looks for User Initiated CPM work","To control how long the CPM rests between password changes","To control the maximum amount of time the CPM will wait for a password change to complete"],a:[0],e:"Interval = frequency (minutes) the CPM checks for SYSTEM-initiated work (scheduled changes/verifications/reconciles). User-initiated work is governed by ImmediateInterval."},
+{n:5,t:T.S,y:"multi",q:"Unix root passwords are in safe UnixRoot with Dual Control enabled on some accounts. Operations Staff must use show/copy/connect on an emergency basis, but only with approval. Which safe permissions do you grant Operations Staff?",o:["Use Accounts","Retrieve Accounts","Authorize Password Requests","Access Safe without Authorization"],a:[0,1],e:"Use Accounts enables show/copy/connect; Retrieve Accounts lets them view the password after approval. Authorize = approvers only; Access without Authorization would bypass dual control."},
+{n:6,t:T.C,y:"mc",q:"What is the purpose of the Immediate Interval setting in a CPM policy?",o:["To control how often the CPM looks for System Initiated CPM work","To control how often the CPM looks for User Initiated CPM work","To control how often the CPM rests between password changes","To control the maximum amount of time the CPM will wait for a password change to complete"],a:[1],e:"ImmediateInterval = frequency (minutes) the CPM checks for USER-initiated work (manual change/verify requests). System-initiated work uses Interval."},
+{n:7,t:T.V,y:"multi",q:"Which utilities could you use to change debugging levels on the vault without having to restart the vault?",o:["PAR Agent","PrivateArk Server Central Administration","Edit DBParm.ini in a text editor","Setup.exe"],a:[0,1],e:"PARAgent (PARAgent.ini: EnableTrace/DebugLevel) and PrivateArk Server Central Administration (Debug button) change debug levels live. Editing DBParm.ini requires a Vault restart."},
+{n:8,t:T.M,y:"mc",q:"A Logon Account can be specified in the Master Policy.",o:["TRUE","FALSE"],a:[1],e:"FALSE — a logon account is a technical PLATFORM setting (Platform Management), not a Master Policy rule. The Master Policy holds compliance rules only."},
+{n:9,t:T.M,y:"mc",q:"For an account on a platform that requires Dual Control (via Master Policy exception), how do you let a group of users access the password WITHOUT approval?",o:["Create an exception to the Master Policy to exclude the group from the workflow","Edit the Master Policy rule and modify the advanced 'Access safe without approval' rule to include the group","On the safe where the account is stored, grant the group 'Access safe without audit'","On the safe where the account is stored, grant the group 'Access safe without confirmation'"],a:[3],e:"'Access Safe without confirmation' is a SAFE-level authorization that bypasses the Dual Control workflow (access is still audited)."},
+{n:10,t:T.S,y:"mc",q:"As long as you are a member of the Vault Admins group, you can grant any permission on any safe that you have access to.",o:["TRUE","FALSE"],a:[1],e:"FALSE — Vault Admin authorization ≠ safe permissions. To grant safe permissions you must be a safe member with the appropriate authorization (e.g. Manage Safe / Authorize members). Vault Admins is only auto-added to some system safes."},
+{n:11,t:T.R,y:"mc",q:"Which report provides a list of accounts stored in the vault?",o:["Privileged Accounts Inventory","Privileged Accounts Compliance Status","Entitlement Report","Active Log"],a:[0],e:"Privileged Accounts Inventory = full list of accounts in the Vault (safe, platform, username, address, last accessed/modified, age, etc.)."},
+{n:12,t:T.O,y:"mc",q:"When onboarding accounts using Accounts Feed, which of the following is true?",o:["You must specify an existing Safe where the account will be stored","You can specify the name of a new Safe that will be created to store the account","You can specify the name of a new Platform that will be created and associated with the account","Any onboarded account can be automatically reconciled regardless of platform"],a:[1],e:"Accounts Feed lets you select an existing safe OR create a new one. You cannot create a new platform there, and not all platforms support auto-reconcile."},
+{n:13,t:T.C,y:"mc",q:"Target account platforms can be restricted to accounts that are stored in specific Safes using the Allowed Safes property.",o:["TRUE","FALSE"],a:[0],e:"TRUE — AllowedSafes in the platform (default .*) limits the platform to named safes, e.g. AllowedSafes=(WindowsPasswords)|(LinuxPasswords). Also helps CPM focus its scanning."},
+{n:14,t:T.R,y:"mc",q:"Which one of the following reports is NOT generated by using the PVWA?",o:["Accounts Inventory","Application Inventory","Safes List","Compliance Status"],a:[2],e:"The Safes List report is generated from the PrivateArk Client (safes and properties by location), not the PVWA."},
+{n:15,t:T.P,y:"mc",q:"PSM captures a record of each command that was executed in Unix.",o:["TRUE","FALSE"],a:[0],e:"TRUE — the SSH text recorder captures keystrokes/commands in SSH sessions; recordings are stored and protected in the Vault for auditors."},
+{n:16,t:T.C,y:"mc",q:"Platform settings are applied to ________.",o:["The entire vault","Network Areas","Safes","Individual Accounts"],a:[3],e:"Each account is attached to a platform; platform settings (change/verify/reconcile behavior, complexity, etc.) apply to the individual accounts on it."},
+{n:17,t:T.M,y:"mc",q:"Customers who have the 'Access Safe without confirmation' safe permission on a safe where accounts are configured for Dual Control still need to request approval to use the account.",o:["TRUE","FALSE"],a:[1],e:"FALSE — 'Access Safe without confirmation' bypasses Dual Control entirely; no approval request needed."},
+{n:18,t:T.C,y:"mc",q:"What is the name of the platform parameter that controls how long a password stays valid when One Time Passwords are enabled via the Master Policy?",o:["Min Validity Period","Interval","Immediate Interval","Timeout"],a:[0],e:"MinValidityPeriod = minutes from last retrieval until the password is replaced (default 60). Also used to auto-release exclusive accounts."},
+{n:19,t:T.O,y:"mc",q:"It is possible to leverage DNA to provide discovery functions that are not available with auto-detection.",o:["TRUE","FALSE"],a:[0],e:"TRUE — DNA is a standalone agentless scanner: finds privileged accounts network-wide, detects Pass-the-Hash exposure, produces audit reports/maps — beyond what auto-detection does."},
+{n:20,t:T.O,y:"multi",q:"Which of the following files must be created or configured in order to run the Password Upload Utility?",o:["PACli.ini","Vault.ini","conf.ini","A comma delimited upload file"],a:[0,2,3],e:"Needed: CSV upload file (password objects), PACli.ini (Vault/User/Password/LogFile for PACLI), conf.ini (InputFile/LogFile/ErrorFile). Vault.ini is a Vault-server file, not used by the utility."},
+{n:21,t:T.U,y:"mc",q:"Users can be restricted to using certain CyberArk interfaces (e.g. PVWA or PACLI).",o:["TRUE","FALSE"],a:[0],e:"TRUE — the User Type property (license-driven, e.g. EPVUser vs BizUser) defines which interfaces a user may access the Vault through."},
+{n:22,t:T.C,y:"mc",q:"What is the purpose of the HeadStartInterval setting in a platform?",o:["It determines how far in advance audit data is collected for reports","It instructs the CPM to initiate the password change process X number of days before expiration","It instructs the AIM Provider to 'skip the cache' during the defined time period","It alerts users of upcoming password changes X days before expiration"],a:[1],e:"HeadStartInterval = days before expiration (ExpirationPeriod) that the CPM starts the change process, so a valid password is always available."},
+{n:23,t:T.C,y:"mc",q:"It is possible to restrict the time of day, or day of week, that a RECONCILE process can occur.",o:["TRUE","FALSE"],a:[0],e:"TRUE — platform reconcile settings (RCFromHour/RCToHour/RCExecutionDays) restrict when reconciliation runs."},
+{n:24,t:T.M,y:"mc",q:"Which of the following options is NOT set in the Master Policy?",o:["Password Expiration Time","Enabling/Disabling of the Connection Through the PSM","Password Complexity","The use of One-Time-Passwords"],a:[2],e:"Password Complexity is a technical PLATFORM setting. Expiration, PSM connections, and OTP are Master Policy rules."},
+{n:25,t:T.M,y:"mc",q:"The primary purpose of exclusive accounts is to ensure non-repudiation (individual accountability).",o:["TRUE","FALSE"],a:[0],e:"TRUE — exclusive accounts are locked to one user at a time, enforcing individual accountability. (See Q78 — the answer key uses 'collusion to commit' for an alternate phrasing; know both.)"},
+{n:26,t:T.C,y:"mc",q:"You associated a logon account with one of your UNIX root accounts in the vault. When attempting to CHANGE the root account's password, the CPM will…",o:["Log in to the system as root, then change root's password","Log in to the system as the logon account, then change root's password","Log in to the system as the logon account, run the su command to log in as root, and then change root's password","None of these"],a:[2],e:"The CPM logs in with the logon account (root SSH is blocked), elevates via su to root, then changes the password."},
+{n:27,t:T.C,y:"mc",q:"It is possible to restrict the time of day, or day of week, that a VERIFY process can occur.",o:["TRUE","FALSE"],a:[0],e:"TRUE — the platform's verify time window (VFFromHour/VFToHour etc.) restricts when verification runs, reducing target/network load in peak hours."},
+{n:28,t:T.M,y:"multi",q:"Which of the following can be configured in the Master Policy? Choose all that apply.",o:["Dual Control","One Time Passwords","Exclusive Passwords","Password Reconciliation","Ticketing Integration","Required Properties","Custom Connection Components","Password Aging Rules"],a:[0,1,2,7],e:"Master Policy = workflows (Dual Control, OTP, Exclusive) + password aging + session/audit rules. Reconciliation, ticketing, required properties and connection components are PLATFORM settings/processes."},
+{n:29,t:T.C,y:"mc",q:"If a password is changed manually on a server, bypassing the CPM, how do you configure the account so the CPM can resume management automatically?",o:["Configure the Provider to change the password to match the Vault's password","Associate a reconcile account and configure the platform to reconcile automatically","Associate a logon account and configure the platform to reconcile automatically","Run the correct auto-detection process to rediscover the password"],a:[1],e:"A reconcile account (with password-reset rights) plus RCAutomaticReconcileWhenUnsynched=Yes on the platform restores sync automatically."},
+{n:30,t:T.M,y:"mc",q:"What is the maximum number of levels of authorization you can set up in Dual Control?",o:["1","2","3","4"],a:[1],e:"Dual Control supports up to TWO levels of authorization (approvers can be users or groups)."},
+{n:31,t:T.S,y:"mc",q:"As long as you are a member of the Vault Admins group you can grant any permission on any safe.",o:["TRUE","FALSE"],a:[1],e:"FALSE — you need the 'Authorize safe members' permission ON that safe (or be a member/owner). Vault Admins group is only auto-added to certain system safes."},
+{n:32,t:T.C,y:"mc",q:"Per best practice, SSH access is denied for root on UNIX/Linux. What is the BEST way to allow the CPM to manage root accounts?",o:["Create a privileged account that can SSH directly from the CPM; make it the Reconcile account of root","Create a non-privileged account that can SSH directly from the CPM; make it the Logon account of root","Configure the Unix system to allow SSH logins","Configure the CPM to allow SSH logins"],a:[1],e:"Use a non-privileged LOGON account: CPM logs in with it, then su's to root — root SSH stays disabled."},
+{n:33,t:T.P,y:"multi",q:"Which of the following statements are NOT true when enabling PSM recording for a target Windows server? (Choose all that apply)",o:["The PSM software must be installed on the target server","PSM must be enabled in the Master Policy (directly or through exception)","PSMConnect must be added as a local user on the target server","RDP must be enabled on the target server"],a:[0,2],e:"NOT true: PSM is a proxy — nothing is installed on the target, and PSMConnect lives on the PSM server, not the target. TRUE: PSM enabled in Master Policy + RDP enabled on target."},
+{n:34,t:T.O,y:"mc",q:"The Password Upload Utility can be used to create safes.",o:["TRUE","FALSE"],a:[0],e:"TRUE — the utility can create the required Vault environment: new safes, adding the CPM user as owner, and sharing the safe with PVWA."},
+{n:35,t:T.O,y:"multi",q:"Which CyberArk components or products can be used to discover Windows Services or Scheduled Tasks that use privileged accounts? Select all that apply.",o:["Discovery and Audit (DNA)","Auto Detection (AD)","Export Vault Data (EVD)","On Demand Privileges Manager (OPM)","Accounts Discovery"],a:[0,1,4],e:"DNA, Auto Detection, and Accounts Discovery can all find service/scheduled-task account usages. EVD exports Vault data; OPM is least-privilege elevation."},
+{n:36,t:T.M,y:"mc",q:"A Reconcile Account can be specified in the Master Policy.",o:["TRUE","FALSE"],a:[1],e:"FALSE — reconcile accounts are configured in PLATFORM settings (or at account level), not the Master Policy."},
+{n:37,t:T.P,y:"mc",q:"In order to connect to a target device through PSM, the account credentials used for the connection must be stored in the vault?",o:["True","False. The user can also enter credentials manually using Secure Connect","False. If credentials are not in the vault, the PSM logs into the target as PSMConnect","False. If credentials are not in the vault, the PSM will prompt for credentials"],a:[1],e:"Secure Connect (Ad-Hoc Access) lets users supply their own credentials at connection time — not stored or managed by CyberArk — while still getting PSM isolation/recording."},
+{n:38,t:T.S,y:"multi",q:"SAFE authorizations may be granted to ________. Select all that apply.",o:["Vault Users","Vault Groups","LDAP Users","LDAP Groups"],a:[0,1,2,3],e:"Safe authorizations can be granted to all four: Vault users/groups and LDAP users/groups. (Contrast with VAULT authorizations = users only.)"},
+{n:39,t:T.P,y:"multi",q:"Secure Connect provides the following. Choose all that apply.",o:["PSM connections to target devices that are not managed by CyberArk","Session Recording","Real-time live session monitoring","PSM connections from a terminal without the need to log in to the PVWA"],a:[0,1,2],e:"Secure Connect = ad-hoc PSM connections to unmanaged targets, with recording and live monitoring. You still must log in via PVWA to launch it."},
+{n:40,t:T.O,y:"mc",q:"Which onboarding method would you use to integrate CyberArk with your accounts provisioning process?",o:["Accounts Discovery","Auto Detection","Onboarding REST API functions","PTA Rules"],a:[2],e:"The Onboarding REST API integrates with provisioning: accounts are created in the Vault the moment they're provisioned (proactive onboarding)."},
+{n:41,t:T.O,y:"mc",q:"What is the purpose of a linked account?",o:["To ensure that a particular collection of accounts all have the same password","To ensure a particular set of accounts all change at the same time","To connect the CPM to a target system","To allow more than one account to work together as part of a password management process"],a:[3],e:"Linked accounts (logon, reconcile, enable, jump…) cooperate in the management process — e.g. a logon account signs in and su's to root; a reconcile account resets an out-of-sync password."},
+{n:42,t:T.M,y:"mc",q:"One can create exceptions to the Master Policy based on ________.",o:["Safes","Platforms","Policies","Accounts"],a:[1],e:"Master Policy exceptions are scoped by PLATFORM — you override the policy for all accounts on that platform."},
+{n:43,t:T.V,y:"mc",q:"The vault supports Role Based Access Control.",o:["TRUE","FALSE"],a:[0],e:"TRUE — roles/groups get permissions per least privilege; users inherit via membership."},
+{n:45,t:T.P,y:"mc",q:"Can the Connect button be used to initiate an SSH connection, as root, to a Unix system when SSH access for root is denied?",o:["Yes — the connect button uses PMTerminal.exe which bypasses the root SSH restriction","Yes — only if a logon account is associated with the root account and the user connects through the PSM-SSH connection component","Yes — if a logon account is associated with the root account","No, it is not possible"],a:[1],e:"Requires BOTH: a logon account linked to root AND the PSM-SSH connection component (PSM signs in as the logon account then su's to root)."},
+{n:46,t:T.U,y:"mc",q:"A user with administrative privileges to the vault can only grant other users privileges that he himself has.",o:["TRUE","FALSE"],a:[1],e:"FALSE — a user with the 'Authorize Users' vault authorization can grant ANY privilege to others, regardless of his own (but can't change his own)."},
+{n:47,t:T.A,y:"mc",q:"By default, members of which built-in group can view and configure Automatic Remediation and Session Analysis and Response in the PVWA?",o:["Vault Admins","Security Admins","Security Operators","Auditors"],a:[1],e:"Security Admins configure PTA's Automatic Remediation and Session Analysis & Response policies."},
+{n:48,t:T.V,y:"mc",q:"CyberArk implements license limits by controlling the number and types of users that can be provisioned in the vault.",o:["TRUE","FALSE"],a:[1],e:"FALSE — limits apply to users AUTHENTICATING/using the Vault, enforced by the License Manager service (usage thresholds, notifications, blocking), not to provisioning."},
+{n:49,t:T.S,y:"mc",q:"Assuming a safe has been configured to be accessible during certain hours of the day, a Vault Admin may still access that safe outside of those hours.",o:["TRUE","FALSE"],a:[0],e:"TRUE — the 'Bypass Safe Time Restrictions' vault authorization (held by Vault Admins by default) allows access outside the safe's time window."},
+{n:50,t:T.O,y:"mc",q:"The Accounts Feed contains:",o:["Accounts that were discovered by CyberArk in the last 30 days","Accounts that were discovered by CyberArk that have not yet been onboarded","All accounts added to the vault in the last 30 days","All users added to CyberArk in the last 30 days"],a:[1],e:"Accounts Feed = discovered-but-not-yet-onboarded accounts, shown in the Pending Accounts page for review/onboarding."},
+{n:51,t:T.P,y:"mc",q:"PSM for Windows (previously known as RDP Proxy) supports connections to the following target systems:",o:["Windows","UNIX","Oracle","All of the above"],a:[3],e:"PSM supports many targets via connection components: PSM-RDP (Windows), PSM-SSH/Telnet (UNIX), PSM-Toad/SQLPlus (Oracle), and more."},
+{n:52,t:T.M,y:"mc",q:"What is the primary purpose of One Time Passwords?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud"],a:[0],e:"OTP = password changed after each use/period → a stolen password is useless. (Exclusive access = accountability; Dual Control = collusion to commit.)"},
+{n:53,t:T.M,y:"mc",q:"Users who have the 'Access Safe without confirmation' safe permission on a safe where accounts are configured for Dual Control still need to request approval to use the account.",o:["TRUE","FALSE"],a:[1],e:"FALSE — that permission bypasses Dual Control (no approval needed); access is still audited."},
+{n:54,t:T.P,y:"multi",q:"Ad-Hoc Access (formerly Secure Connect) provides the following features. Choose all that apply.",o:["PSM connections to target devices that are not managed by CyberArk","Session Recording","Real-time live session monitoring","PSM connections from a terminal without the need to log in to the PVWA"],a:[0,1,2],e:"Ad-hoc connections to unmanaged targets, recorded and live-monitorable. PVWA login is still required to launch."},
+{n:55,t:T.M,y:"mc",q:"When a group is granted the 'Authorize Account Requests' permission on a safe, Dual Control requests must be approved by:",o:["Any one person from that group","Every person from that group","The number of persons specified by the Master Policy","That access cannot be granted to groups"],a:[2],e:"The Master Policy defines how many approvers (and levels) are required — the request goes to the whole group but only that number must confirm."},
+{n:56,t:T.C,y:"mc",q:"When managing SSH keys, the CPM stores the PRIVATE key:",o:["In the Vault","On the target server","Both in the Vault and on the target server","Nowhere — the private key can always be generated from the public key"],a:[0],e:"Private SSH key → Vault only (never on the target). CPM generates a new pair and pushes the public key to the target."},
+{n:57,t:T.C,y:"mc",q:"When managing SSH keys, the CPM stores the PUBLIC key:",o:["In the Vault","On the target server","Both in the Vault and on the target server","Nowhere — the public key can always be generated from the private key"],a:[1],e:"Public key → target server (~/.ssh/authorized_keys). Private key stays in the Vault."},
+{n:58,t:T.O,y:"mc",q:"Accounts Discovery allows secure connections to domain controllers.",o:["TRUE","FALSE"],a:[1],e:"Keyed FALSE (no official explanation is provided for this one)."},
+{n:59,t:T.C,y:"mc",q:"Which parameter controls how often the CPM looks for soon-to-be-expired passwords that need to be changed?",o:["HeadStartInterval","Interval","ImmediateInterval","The CPM does not change the password under this circumstance"],a:[0],e:"HeadStartInterval makes the CPM start changing passwords X days before they expire."},
+{n:60,t:T.S,y:"mc",q:"Vault admins must manually add the auditors' group to newly created safes so auditors will have sufficient access to run reports.",o:["TRUE","FALSE"],a:[1],e:"FALSE — the Auditors group is automatically added to every safe by default (View Audit); admins may remove it from specific safes."},
+{n:61,t:T.P,y:"mc",q:"Which of the following Privileged Session Management solutions provide a detailed audit log of session activities?",o:["PSM (launching connections via the Connect button in PVWA)","PSM for Windows (previously RDP Proxy)","PSM for SSH (previously PSM SSH Proxy)","All of the above"],a:[3],e:"All PSM flavors produce detailed session audits and recordings (plus SQL/Windows-events/keystroke audits)."},
+{n:62,t:T.M,y:"mc",q:"What is the primary purpose of Dual Control?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud ensuring no single actor may use a password without authorization"],a:[3],e:"Dual Control = at least two people involved (requester + approver) → no single actor can act alone. Memorize the trio: OTP→theft risk, Exclusive→accountability, Dual Control→collusion."},
+{n:63,t:T.S,y:"mc",q:"Time of day or day of week restrictions on when password VERIFICATIONS can occur are configured in ________.",o:["The Master Policy","The Platform settings","The Safe settings","The Account Details"],a:[2],e:"Keyed: Safe settings (safes can be limited to certain hours). Note: platform-level FromHour/ToHour also restrict CPM verify/change windows — see Q27/Q228."},
+{n:64,t:T.C,y:"mc",q:"Which parameter controls how often the CPM looks for accounts that need to be changed from recently completed Dual Control requests?",o:["HeadStartInterval","Interval","ImmediateInterval","The CPM does not change the password under this circumstance"],a:[1],e:"Keyed: Interval — the CPM's periodic cycle picks up accounts to change after completed Dual Control requests."},
+{n:65,t:T.R,y:"mc",q:"According to the DEFAULT Web Options settings, which group grants access to the REPORTS page?",o:["PVWAUsers","Vault Admins","Auditors","PVWAMonitor"],a:[2],e:"⚠ Keyed 'Auditors' here but 'PVWAMonitor' for the same question at Q155 — CyberArk docs: ManageReportsGroup default = PVWAMonitor. Know both phrasings."},
+{n:66,t:T.M,y:"mc",q:"Which Master Policy setting must be active in order to have an account checked out by ONE user for a pre-determined amount of time?",o:["Require dual control password access approval","Enforce check-in/check-out exclusive access","Enforce one-time password access","Enforce check-in/check-out exclusive access AND enforce one-time password access"],a:[1],e:"Exclusive access = check-out locks the account to one user until check-in; duration configured on the platform."},
+{n:67,t:T.O,y:"mc",q:"The Password Upload Utility must run from the CPM server.",o:["TRUE","FALSE"],a:[0],e:"TRUE (as keyed) — the utility runs from the CPM server command line, uploading passwords from a prepared file."},
+{n:68,t:T.S,y:"mc",q:"For a safe with Object Level Access enabled, you can turn off Object Level Access Control when it is no longer needed on the safe.",o:["TRUE","FALSE"],a:[1],e:"FALSE — once OLAC is enabled on a safe it CANNOT be disabled."},
+{n:69,t:T.V,y:"mc",q:"The vault supports Subnet Based Access Control.",o:["TRUE","FALSE"],a:[0],e:"TRUE — access can be restricted by network area/subnet (and firewall rules limiting specific IPs)."},
+{n:70,t:T.O,y:"mc",q:"When creating an onboarding rule, it will be executed upon:",o:["All accounts in the pending accounts list","Any future accounts discovered by a discovery process","Both — all pending accounts AND any future discovered accounts"],a:[2],e:"Onboarding rules apply retroactively to the pending list AND to future discoveries."},
+{n:71,t:T.V,y:"mc",q:"How does the Vault administrator apply a new license file?",o:["Upload license.xml to the system Safe and restart the PrivateArk Server service","Upload license.xml to the system Safe","Upload license.xml to the Vault Internal Safe and restart the PrivateArk Server service","Upload license.xml to the Vault Internal Safe"],a:[2],e:"Keyed: Vault Internal Safe + restart PrivateArk Server. ⚠ Q76 accepts 'system Safe' — docs say the license lives in the system safe; know the keyed answer per phrasing."},
+{n:72,t:T.M,y:"mc",q:"When Dual Control is enabled, a user must first submit a request in the PVWA and receive approval before being able to launch a secure connection via PSM for Windows.",o:["True","False — a user can submit the request after the connection has already been initiated"],a:[0],e:"TRUE — with Dual Control, confirmation from authorized safe owner(s) is required BEFORE the PSM connection can be launched."},
+{n:73,t:T.A,y:"mc",q:"Which of the following PTA detections require the deployment of a Network Sensor or installing the PTA Agent on the domain controller?",o:["Suspected credential theft","Over-Pass-The-Hash","Golden Ticket","Unmanaged privileged access"],a:[2],e:"Golden Ticket (forged Kerberos TGT) detection needs the Network Sensor or PTA Agent on the DC to inspect Kerberos traffic anomalies."},
+{n:74,t:T.P,y:"mc",q:"Via PVWA, a user initiates a PSM connection to a target Linux machine using RemoteApp. When the client machine makes an RDP connection to the PSM server, which user is utilized?",o:["Credentials stored in the Vault for the target machine","Shadowuser","PSMConnect","PSMAdminConnect"],a:[2],e:"End-user sessions connect to the PSM server as PSMConnect. (Auditors live-monitoring use PSMAdminConnect — Q83.)"},
+{n:75,t:T.R,y:"mc",q:"Which report shows the accounts that are accessible to each user?",o:["Activity report","Entitlement report","Privileged Accounts Compliance Status report","Applications Inventory report"],a:[1],e:"Entitlement report = each user's effective access control/authorization level on every account they can reach."},
+{n:76,t:T.V,y:"mc",q:"The Vault administrator can change the Vault license by uploading the new license to the system Safe.",o:["True","False"],a:[0],e:"TRUE — upload license.xml to the system Safe (PrivateArk client), replacing the current file; no reinstall needed. Compare wording with Q71."},
+{n:77,t:T.C,y:"mc",q:"A logon account is associated with a Unix root account. When attempting to VERIFY the root account's password, the CPM will:",o:["Ignore the logon account and attempt to log in as root","Prompt the end user with a dialog box asking for the login account to use","Log in first with the logon account, then run the su command to log in as root using the password in the Vault","None of these"],a:[2],e:"Same flow as change: sign in with logon account → su to root → verify with the vaulted password."},
+{n:78,t:T.M,y:"mc",q:"Which is the primary purpose of exclusive accounts?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud ensuring no single actor may use a password without authorization"],a:[3],e:"⚠ Keyed D here, but Q25 keys non-repudiation TRUE for exclusive accounts (and docs agree: exclusive = one user at a time = individual accountability). Know both keyed answers."},
+{n:79,t:T.P,y:"mc",q:"What is the chief benefit of PSM?",o:["Privileged session isolation","Automatic password management","Privileged session recording","'Privileged session isolation' AND 'Privileged session recording'"],a:[3],e:"PSM = proxy isolation (credentials never reach the user) + full session recording for audit."},
+{n:80,t:T.V,y:"mc",q:"An SMTP integration is critical for monitoring Vault activity and facilitating workflow processes, such as Dual Control.",o:["True","False"],a:[0],e:"TRUE — the ENE sends email notifications (requests, confirmations, alerts, system events) via SMTP, powering Dual Control workflows."},
+{n:81,t:T.S,y:"mc",q:"CyberArk recommends implementing object level access control on all Safes.",o:["True","False"],a:[1],e:"FALSE — OLAC impacts Vault performance; use it only where granular per-object permissions are truly needed (e.g. one vendor, one password)."},
+{n:82,t:T.A,y:"mc",q:"Which of the following logs contains information about errors related to PTA?",o:["ITAlog.log","diamond.log","pm_error.log","WebApplication.log"],a:[1],e:"diamond.log (in /opt/tomcat/logs on the PTA machine) is PTA's main log — events, alerts, and errors."},
+{n:83,t:T.P,y:"mc",q:"An auditor initiates a live monitoring session to the PSM server to view an ongoing session. Which user is used for the auditor's RDP connection to the PSM server?",o:["PSMAdminConnect","Shadowuser","PSMConnect","Credentials stored in the Vault for the target machine"],a:[0],e:"Live monitoring/termination by auditors uses PSMAdminConnect. End users connecting through PSM use PSMConnect."},
+{n:84,t:T.V,y:"multi",q:"Which keys are required to be present in order to start the PrivateArk Server service?",o:["Recovery public key","Recovery private key","Server key","Safe key"],a:[0,2],e:"Server key (opens the Vault) + recovery PUBLIC key. The recovery PRIVATE key is only for disaster recovery (Master user) and should stay locked away."},
+{n:85,t:T.P,y:"mc",q:"Which of the following PSM solutions support live monitoring of active sessions?",o:["PSM (via the Connect button in PVWA)","PSM for Windows (previously RDP Proxy)","PSM for SSH (previously PSM-SSH Proxy)","All of the above"],a:[3],e:"All PSM flavors support live monitoring, suspend and terminate of active sessions by authorized users."},
+{n:86,t:T.V,y:"mc",q:"Within the Vault, each password is encrypted by:",o:["the server key","the recovery public key","the recovery private key","its own unique key"],a:[3],e:"Layered encryption: each password → its own unique key → safe key → server key → recovery public key."},
+{n:87,t:T.D,y:"mc",q:"When a DR Vault becomes active, it will automatically revert back to DR mode once the Primary Vault comes back online.",o:["True — this is the default behavior","False — the Vault admin must manually set the DR Vault to DR mode by setting FailoverMode=no in padr.ini","True — if AllowFailback is set to 'yes' in padr.ini","False — the admin must set FailoverMode=no in dbparm.ini"],a:[1],e:"Failback is MANUAL: FailoverMode=no in padr.ini, stop replication, restart the service. (Q100 phrases it with AllowFailback=yes in padr.ini — know both keyed answers.)"},
+{n:88,t:T.U,y:"mc",q:"Which user(s) can access ALL passwords in the Vault?",o:["Administrator","Any member of Vault administrators","Any member of auditors","Master"],a:[3],e:"Only the Master user has full permissions on all safes/accounts. Administrator/Vault Admins/Auditors need explicit safe membership to see passwords."},
+{n:89,t:T.R,y:"mc",q:"Which report could show all accounts that are past their expiration dates?",o:["Privileged Account Compliance Status report","Activity log","Privileged Account Inventory report","Application Inventory report"],a:[0],e:"Compliance Status report = compliance vs expiration/change policy → shows overdue accounts."},
+{n:90,t:T.O,y:"mc",q:"Which values are acceptable in the address field of an account?",o:["It must be a Fully Qualified Domain Name (FQDN)","It must be an IP address","It must be a NetBIOS name","Any name that is resolvable on the Central Policy Manager (CPM) server is acceptable"],a:[3],e:"The CPM connects using that address — anything resolvable on the CPM server works (FQDN, IP, NetBIOS, hosts-file entry)."},
+{n:91,t:T.V,y:"mc",q:"tsparm.ini is the main configuration file for the Vault.",o:["True","False"],a:[1],e:"FALSE — DBParm.ini is the main Vault config file. TSParm.ini holds other settings (e.g. safes data location — Q171)."},
+{n:92,t:T.S,y:"mc",q:"Which combination of safe member permissions will allow end users to log in to a remote machine transparently but NOT show or copy the password?",o:["Use Accounts, Retrieve Accounts, List Accounts","Use Accounts, List Accounts","Use Accounts","List Accounts, Retrieve Accounts"],a:[1],e:"Use (connect via PSM) + List (see the account). Retrieve is what enables show/copy — leave it out."},
+{n:93,t:T.C,y:"mc",q:"A logon account can be specified in the platform settings.",o:["True","False"],a:[0],e:"TRUE — a default logon account can be set at platform level (or per account in the CPM pane of Account Details)."},
+{n:94,t:T.A,y:"mc",q:"Which type of automatic remediation can be performed by the PTA in case of a suspected credential theft security event?",o:["Password change","Password reconciliation","Session suspension","Session termination"],a:[0],e:"Suspected credential theft (and OverPass-the-Hash) → PTA rotates/changes the credential via the CPM."},
+{n:95,t:T.V,y:"mc",q:"dbparm.ini is the main configuration file for the Vault.",o:["True","False"],a:[1],e:"⚠ Keyed FALSE, yet DBParm.ini IS the main Vault configuration file (see Q91). Almost certainly an answer-key error — for understanding, remember: DBParm.ini = main Vault config."},
+{n:96,t:T.P,y:"mc",q:"A user successfully conducted a short PSM session and logged off, but cannot access the Monitoring tab to view the recordings. What is the issue?",o:["The user must log in as PSMAdminConnect","The PSM service is not running","The user is not a member of the PVWAMonitor group","The user is not a member of the Auditors group"],a:[3],e:"Viewing recordings requires Auditors membership (or permissions on the relevant account + recording safes)."},
+{n:97,t:T.D,y:"mc",q:"Which of the following components can be used to create a tape backup of the Vault?",o:["Disaster Recovery","Distributed Vaults","Replicate","High Availability"],a:[2],e:"PAReplicate exports the encrypted safes + metadata outside the Vault so a backup system can copy them to tape."},
+{n:98,t:T.V,y:"multi",q:"Which are secure options for storing the contents of the Operator CD, while still allowing the contents to be accessible upon a planned Vault restart? (Choose three)",o:["Store the CD in a physical safe and mount it for Vault maintenance","Copy the entire contents of the CD to the system Safe on the Vault","Copy the entire contents of the CD to a folder on the Vault server secured with NTFS permissions","Store the server key in an HSM and copy the rest of the keys to a folder on the Vault server secured with NTFS permissions"],a:[0,1,3],e:"Physical safe, system Safe, or HSM-for-server-key are secure. Plain NTFS folder for ALL keys (option C) is NOT considered secure."},
+{n:99,t:T.O,y:"mc",q:"Which of these account onboarding methods is considered PROACTIVE?",o:["Accounts Discovery","Detecting accounts with PTA","A REST API integration with account provisioning software","A DNA scan"],a:[2],e:"REST API + provisioning = accounts vaulted the moment they're created. Discovery/PTA/DNA are reactive (find existing accounts)."},
+{n:100,t:T.D,y:"mc",q:"When a DR Vault becomes active, it will automatically fail back to the original state once the Primary Vault comes back online:",o:["True — this is the default behavior","False — this is not possible","True — if AllowFailback is set to 'yes' in the padr.ini file","True — if AllowFailback is set to 'yes' in the dbparm.ini file"],a:[2],e:"Keyed: AllowFailback=yes in padr.ini (default is no → manual failback). padr.ini = DR config; dbparm.ini = Vault DB config. Compare Q87."},
+{n:101,t:T.C,y:"mc",q:"What is the purpose of the password change process?",o:["To test that CyberArk is storing accurate credentials for accounts","To change the password of an account according to organizationally defined password rules","To allow CyberArk to manage unknown or lost credentials","To generate a new complex password"],a:[1],e:"Change = rotate per policy rules. Verify = test accuracy; Reconcile = recover unknown/out-of-sync credentials."},
+{n:102,t:T.V,y:"mc",q:"What is the purpose of the CyberArk Event Notification Engine service?",o:["It sends email messages from the CPM","It sends email messages from the Vault","It processes audit report messages","It makes Vault data available to components"],a:[1],e:"ENE runs on the Vault server and sends automatic email notifications about PAS activities to predefined users."},
+{n:103,t:T.A,y:"mc",q:"PTA can automatically suspend sessions if suspicious activities are detected in a privileged session, but only if the session is made via the CyberArk PSM.",o:["True","False — PTA can suspend sessions whether the session is made via the PSM or not"],a:[1],e:"Keyed FALSE — PTA can suspend sessions regardless of connection method (PSM, PVWA, direct, SSH, RDP…)."},
+{n:104,t:T.D,y:"mc",q:"Which service should NOT be running on the DR Vault when the primary Production Vault is up?",o:["PrivateArk Database","PrivateArk Server","CyberArk Vault Disaster Recovery (DR) service","CyberArk Logical Container"],a:[2],e:"⚠ Keyed C, but that conflicts with Q138 (DR service = Running, PrivateArk SERVER = Stopped during replication) and with docs. Understand: on a standby DR Vault the PrivateArk Server is stopped and the DR service runs."},
+{n:105,t:T.U,y:"mc",q:"Which user is automatically added to all Safes and cannot be removed?",o:["Auditor","Administrator","Master","Operator"],a:[2],e:"The Master user is a member of every safe with full permissions and cannot be removed or modified."},
+{n:106,t:T.V,y:"mc",q:"What is the purpose of the PrivateArk Database service?",o:["Communicates with components","Sends email alerts from the Vault","Executes password changes","Maintains Vault metadata"],a:[3],e:"PrivateArk Database = Vault metadata (safes, accounts, users, policies, audit records). PrivateArk Server = talks to components; ENE = email; CPM = password changes."},
+{n:107,t:T.V,y:"mc",q:"A user gets 'ITATS006E Station is suspended for User jsmith' when signing into the PVWA. Which utility would a Vault administrator use to correct this?",o:["createcredfile.exe","cavaultmanager.exe","PrivateArk","PVWA"],a:[2],e:"Too many bad logins → suspended station. Fix in the PrivateArk client: activate the suspended user/Trusted Net Area."},
+{n:108,t:T.V,y:"mc",q:"What is the purpose of the PrivateArk Server service?",o:["Executes password changes","Maintains Vault metadata","Makes Vault data accessible to components","Sends email alerts from the Vault"],a:[2],e:"PrivateArk Server runs the Vault and serves requests from PVWA/CPM/PSM/PTA — it makes Vault data accessible to components."},
+{n:109,t:T.V,y:"mc",q:"Select the best practice for storing the Master CD.",o:["Copy the files to the Vault server and discard the CD","Copy the contents of the CD to an HSM and discard the CD","Store the CD in a secure location, such as a physical safe","Store the CD in a physical safe AND copy the contents to an NTFS-secured folder on the Vault"],a:[2],e:"Master CD (server key + recovery keys) → physical safe, full stop. No copies on the Vault; HSM can't hold the recovery keys."},
+{n:110,t:T.P,y:"mc",q:"An auditor needs to log in to the PSM in order to live monitor an active session. Which user ID is used to establish the RDP connection to the PSM server?",o:["PSMConnect","PSMMaster","PSMGwUser","PSMAdminConnect"],a:[0],e:"⚠ Keyed PSMConnect here, but Q83 (and CyberArk docs) say live monitoring uses PSMAdminConnect. Rule of thumb: end users → PSMConnect; auditors monitoring → PSMAdminConnect. Know both keyed answers."},
+{n:111,t:T.P,y:"mc",q:"Which CyberArk group does a user need to be part of to view recordings or live monitor sessions?",o:["Auditors","Vault Admin","DR Users","Operators"],a:[0],e:"Auditors group (or explicit permissions on the account + recording safes)."},
+{n:112,t:T.D,y:"order",q:"Arrange the steps to restore a Vault using PARestore from a backup in the correct sequence.",o:["Set BackupFilesDeletion=No","Run: PARestore vault.ini operator /FullVaultRestore","Run: CAVaultManager RecoverBackupFiles","Run: CAVaultManager RestoreDB","Set BackupFilesDeletion=Yes,24,1,5,7d"],a:[],e:"Disable backup-file deletion → PARestore full restore → RecoverBackupFiles → RestoreDB → re-enable deletion schedule."},
+{n:113,t:T.P,y:"mc",q:"To ensure all sessions are being recorded, an administrator edits the Master Policy. Which configuration is correct?",o:["Require privileged session monitoring and isolation = inactive; Record and save session activity = active","Both inactive","Require privileged session monitoring and isolation = active; Record and save session activity = active","Monitoring/isolation = active; Record and save = inactive"],a:[2],e:"Both rules active: sessions are isolated/monitored AND recorded/saved."},
+{n:114,t:T.U,y:"mc",q:"Which certificate type do you need to configure the vault for LDAP over SSL?",o:["The CA certificate that signed the certificate used by the External Directory","A CA-signed certificate for the Vault server","A CA-signed certificate for the PVWA server","A self-signed certificate for the Vault"],a:[0],e:"Import the CA cert that signed the directory's cert into the Windows cert store on the Vault (and PVWA) so they trust the LDAPS connection."},
+{n:116,t:T.C,y:"mc",q:"You are onboarding an account that is not supported out of the box. What should you do FIRST to obtain a platform to import?",o:["Create a service ticket in the customer portal explaining the custom platform requirements","Search community portals (stackoverflow, reddit, github) for an existing platform","Uncheck 'Hide non-supported platforms' on the platforms page","Visit the CyberArk Marketplace and search for a platform that meets your needs"],a:[3],e:"CyberArk Marketplace first — the largest catalog of platform integrations; otherwise build with the Platform Development Kit."},
+{n:117,t:T.V,y:"mc",q:"You have been asked to identify the up or down status of Vault services. Which CyberArk utility can you use?",o:["Vault Replicator","PAS Reporter","Remote Control Agent","Syslog"],a:[2],e:"The Remote Control Agent (PARAgent) monitors Vault status remotely, can start/stop the Vault, and sends SNMP traps when services are down."},
+{n:118,t:T.V,y:"mc",q:"You are logging into CyberArk as the Master user to recover an orphaned safe. Which items are required to log in as Master?",o:["Master CD, Master Password, console access to the Vault server, PrivateArk Client","Operator CD, Master Password, console access to the PVWA server, PVWA access","Operator CD, Master Password, console access to the Vault server, Recover.exe","Master CD, Master Password, console access to the PVWA server, Recover.exe"],a:[0],e:"Master login = Master CD (RecPrv.key) + Master password + console on the VAULT server + PrivateArk Client. Master can only log in from the Vault machine."},
+{n:119,t:T.C,y:"mc",q:"Your organization requires all passwords be rotated every 90 days. Where can you set this requirement?",o:["Master Policy","Safe Templates","PVWAConfig.xml","Platform Configuration"],a:[3],e:"Keyed: Platform Configuration — the platform's password change interval (e.g. 90 days) drives CPM rotation for its accounts."},
+{n:120,t:T.A,y:"mc",q:"To enable the automatic response 'Add to Pending' in PTA when unmanaged credentials are found, what are the minimum permissions required by PTAUser on the PasswordManager_pending safe?",o:["List Accounts, View Safe members, Add accounts (incl. update properties), Update Account content, Update Account properties","List Accounts, Add accounts, Delete Accounts, Manage Safe","Add accounts, Update Account content, Update Account properties, View Audit","View Accounts, Update Account content, Update Account properties, Access Safe without confirmation, Manage Safe, View Audit"],a:[0],e:"PTAUser needs: List Accounts, View Safe members, Add accounts (incl. update properties), Update Account content, Update Account properties on PasswordManager_pending."},
+{n:121,t:T.S,y:"mc",q:"You have been asked to turn off the time access restrictions for a safe. Where is this setting found?",o:["PrivateArk","RestAPI","Password Vault Web Access (PVWA)","Vault"],a:[0],e:"Safe time-access restrictions live in Safe Properties in the PrivateArk client. ⚠ Q231 keys 'PVWA' for the same question — docs support PrivateArk; know both keyed answers."},
+{n:122,t:T.O,y:"mc",q:"What is the configuration file used by the CPM scanner when scanning UNIX/Linux devices?",o:["UnixPrompts.ini","plink.exe","dbparm.ini","PVConfig.xml"],a:[0],e:"UnixPrompts.ini defines prompts/paths for the CPM scanner on UNIX (login/sudo prompts, passwd/shadow/sudoers paths)."},
+{n:123,t:T.M,y:"mc",q:"Shared accounts whose passwords end users must use — the owner wants to track WHO was using an account at any given moment. Which configuration do you recommend?",o:["Configure one-time passwords for the platform in the Master Policy","Configure shared account mode on the safe","Configure BOTH one-time passwords and exclusive access for the platform in the Master Policy","Configure object level access control on the safe"],a:[2],e:"OTP + Exclusive together: one user at a time (accountability) and a fresh password per checkout."},
+{n:124,t:T.M,y:"mc",q:"In your organization the 'click to connect' button is not active by default. How can this feature be activated?",o:["Policies > Master Policy > Allow EPV transparent connections > Inactive","Policies > Master Policy > Session Management > Require privileged session monitoring and isolation > Add Exception","Policies > Master Policy > Allow EPV transparent connections > Active","Policies > Master Policy > Password Management"],a:[2],e:"'Allow EPV transparent connections' = Active enables the Connect button (one-click PSM connections)."},
+{n:125,t:T.C,y:"mc",q:"You configured a usage in CyberArk and want to update its password. What is the LEAST intrusive way?",o:["Use the 'change' button on the usage's details page","Use the 'change' button on the parent account's details page","Use the 'sync' button on the usage's details page","Use the 'reconcile' button on the parent account's details page"],a:[2],e:"Sync just synchronizes the value between Vault and file — no actual password change (change/reconcile trigger CPM processes)."},
+{n:126,t:T.U,y:"mc",q:"A Vault Admin team member can log in but isn't given Vault Admin rights. Where do you verify that the Vault Admins directory mapping points to the correct AD group?",o:["PVWA > User Provisioning > LDAP Integration > Mapping Criteria","PVWA > User Provisioning > LDAP Integration > Map Name","PVWA > Administration > LDAP Integration > Mappings","PVWA > Administration > LDAP Integration > AD Groups"],a:[2],e:"Administration > LDAP Integration > Mappings lists each directory mapping (LDAP branch, domain groups, authorizations)."},
+{n:127,t:T.P,y:"mc",q:"A newly created platform allows users to access a Linux endpoint. When users click to connect, nothing happens. Which piece of the platform is missing?",o:["PSM-SSH Connection Component","UnixPrompts.ini","UnixProcess.ini","PSM-RDP Connection Component"],a:[0],e:"Linux via PSM needs the PSM-SSH connection component configured on the platform."},
+{n:128,t:T.R,y:"mc",q:"Which CyberArk utility allows you to create lists of Master Policy settings, owners and safes for output to text files or MSSQL databases?",o:["Export Vault Data","Export Vault Information","PrivateArk Client","Privileged Threat Analytics"],a:[1],e:"Keyed: 'Export Vault Information'. The utility is commonly called Export Vault Data (EVD) — see Q201 — exporting Vault data to TXT/CSV/MSSQL. Match the wording used in each question."},
+{n:129,t:T.A,y:"mc",q:"Which PTA sensors are required to detect suspected credential theft?",o:["Logs, Vault Logs","Logs, Network Sensor, Vault Logs","Logs, PSM Logs, CPM Logs","Logs, Network Sensor, EPM"],a:[1],e:"Suspected credential theft needs Logs + Network Sensor + Vault Logs (user connected without first retrieving creds from the Vault)."},
+{n:130,t:T.R,y:"mc",q:"When running a Privileged Accounts Inventory report on a specific safe via the PVWA Reports page, which permissions are required on that safe for complete information?",o:["List Accounts, View Safe Members","Manage Safe Owners","List Accounts, Access Safe without confirmation","Manage Safe, View Audit"],a:[0],e:"List Accounts (see accounts/properties) + View Safe Members (see members/authorizations)."},
+{n:131,t:T.C,y:"mc",q:"Which usage can be added as a service account platform?",o:["Kerberos Tokens","IIS Application Pools","PowerShell Libraries","Loosely Connected Devices"],a:[1],e:"IIS Application Pools is a supported usage/dependency type (service account platform). CPM syncs the app-pool password with the master account."},
+{n:132,t:T.V,y:"match",q:"Match each key to its recommended storage location (per the answer key).",p:[["Recovery Private Key","Vault Server Disk Drive"],["Recovery Public Key","Hardware Security Module"],["Server Key","Physical Safe"],["SSH Keys","Vault"]],a:[],e:"⚠ As per the answer key — treat with caution: docs best practice is Server Key in an HSM and the Master CD (recovery PRIVATE key) in a physical safe (see Q98, Q109, Q118)."},
+{n:133,t:T.D,y:"multi",q:"You need to recover account localadmin02 (server 10.0.123.73) stored in Safe Team1. What do you need to recover and decrypt the object? (Choose three)",o:["Recovery Private Key","Recover.exe","Vault data","Recovery Public Key","Server Key","Master Password"],a:[0,1,2],e:"Recover.exe decrypts a safe's external files using the Recovery PRIVATE key (RecPrv.key from the Master CD) against the Vault data."},
+{n:134,t:T.C,y:"mc",q:"What is the easiest way to duplicate an existing platform?",o:["From PrivateArk, copy/paste the appropriate Policy.ini file, then rename it","From the PVWA platforms page, select a similar existing platform, click Duplicate, then name the new platform","From PrivateArk, copy/paste settings in PVConfiguration.xml and update policyName","From the PVWA platforms page, manually update settings and click 'Save as' instead of Save"],a:[1],e:"PVWA → Platform Management → select platform → Duplicate → rename → customize."},
+{n:135,t:T.P,y:"match",q:"Match the connection component to the corresponding OS/function.",p:[["PSM-SSH","UNIX/Linux machines over SSH"],["PSM-RDP","Windows machines over RDP"],["PSM-WinSCP","UNIX file transfer (upload/download)"],["PSM-SQLPlus","Oracle databases"],["PSM-OS390","IBM mainframes"]],a:[],e:"PSM-SSH→UNIX, PSM-RDP→Windows, PSM-WinSCP→UNIX file transfer, PSM-SQLPlus→Oracle, PSM-OS390→IBM mainframe (TSO/CICS/IMS)."},
+{n:136,t:T.C,y:"mc",q:"The out-of-the-box target platform 'UNIX Via SSH Keys' manages SSH keys. How are these keys managed?",o:["CyberArk stores Private keys in the Vault and updates Public keys on target systems","CyberArk stores Public keys in the Vault and updates Private keys on target systems","CyberArk stores neither and uses a reconcile account to create keys on demand","CyberArk stores both keys and can update targets with either"],a:[0],e:"Private key → Vault (secured, audited); public key → target's authorized_keys, rotated per policy."},
+{n:137,t:T.R,y:"mc",q:"You want to generate a license capacity report. Which tool accomplishes this?",o:["Password Vault Web Access","PrivateArk Client","DiagnoseDB Report","RestAPI"],a:[1],e:"License capacity report (used vs. max licenses per user type) is generated from the PrivateArk Client (Tools menu)."},
+{n:138,t:T.D,y:"match",q:"Match the status of each service on a DR Vault to what is displayed when it is operating normally in REPLICATION mode.",p:[["CyberArk Hardened Windows Firewall","Running"],["PrivateArk Database","Running"],["PrivateArk Server","Stopped"],["CyberArk Vault Disaster Recovery","Running"],["CyberArk Event Notification Engine","Stopped"]],a:[],e:"In replication mode: Firewall + Database + DR service RUN; PrivateArk Server + ENE are STOPPED (they only start when the DR Vault goes active)."},
+{n:139,t:T.P,y:"mc",q:"You need to enable the PSM for all platforms. Where do you perform this task?",o:["Platform Management > (Platform) > UI & Workflows","Master Policy > Session Management","Master Policy > Privileged Access Workflows","Administration > Options > Connection Components"],a:[0],e:"Keyed: per-platform under Platform Management → UI & Workflows → Privileged Session Management (PSM server ID, components, recording options)."},
+{n:140,t:T.D,y:"mc",q:"How much disk space do you need on the server for a PAReplicate?",o:["500 GB","1 TB","Same as disk size on the Satellite Vault","Same as disk size on the Primary Vault"],a:[3],e:"PAReplicate copies the safes in similar structure — you need at least the Primary Vault's disk size."},
+{n:141,t:T.U,y:"mc",q:"In the PrivateArk client, how do you add an LDAP group to a CyberArk group?",o:["Select Update on the CyberArk group, then click Add > LDAP Group","Select Update on the LDAP group, then click Add > LDAP Group","Select Member Of on the CyberArk group, then click Add > LDAP Group","Select Member Of on the LDAP group, then click Add > LDAP Group"],a:[2],e:"On the CyberArk group → Member Of → Add > LDAP Group."},
+{n:142,t:T.V,y:"mc",q:"For a Digital Vault Cluster in a high availability configuration, how does the cluster determine if a node is down?",o:["The heartbeat is no longer detected on the private network","The shared storage array is offline","An alert is generated in the Windows Event log","The Digital Vault Cluster does not detect a node failure"],a:[0],e:"Each node's Cluster Vault Manager sends heartbeats over the private network; missing heartbeats trigger failover."},
+{n:143,t:T.P,y:"multi",q:"Which prerequisites are MANDATORY to run the PSM Health Check? (Select all that are mandatory)",o:["PSM service installed on Windows 2016 or Windows 2019","Web Server (IIS 8.5) role installed","A valid SSL certificate installed on the Web Server","PSM service installed on Windows 2008 R2"],a:[0,1,2],e:"Mandatory: supported Windows (2016/2019), IIS 8.5 role, valid SSL cert. Windows 2008 R2 is not supported."},
+{n:144,t:T.A,y:"mc",q:"In a rule using 'Privileged Session Analysis and Response' in PTA, which session options are available to configure as responses to activities?",o:["Suspend, Terminate, None","Suspend, Terminate, Lock Account","Pause, Terminate, None","Suspend, Terminate"],a:[0],e:"PTA session responses: Suspend (pause + notify), Terminate (disconnect), or None (record/report only)."},
+{n:145,t:T.M,y:"mc",q:"A user requested dual-control access and is unsure who can approve. Where does the Vault Admin identify users or groups who can approve?",o:["PVWA > Administration > Platform Configuration > UI & Workflow > Dual Control > Approvers","PVWA > Policies > Access Control (Safes) > Safe Members > Workflow > Authorize Password Requests","PVWA > Account List > Edit > Advanced > Dual Control > Direct Managers","PrivateArk > Admin Tools > Users and Groups > Auditors"],a:[1],e:"Approvers = safe members holding 'Authorize Password Requests' — check Safe Members → Workflow."},
+{n:146,t:T.M,y:"mc",q:"You are creating a Dual Control workflow for a team's safe. Which safe permissions must you grant to the Approvers group?",o:["List accounts, Authorize account request","Retrieve accounts, Access Safe without confirmation","Retrieve accounts, Authorize account request","List accounts, Unlock accounts"],a:[2],e:"Approvers need Retrieve accounts + Authorize account request (keyed answer)."},
+{n:147,t:T.C,y:"mc",q:"You receive: 'Error in changepass to user domain\\user on domain server (winRc=5) Access is denied.' Which root cause should you investigate?",o:["The account does not have sufficient permissions to change its own password","The domain controller is unreachable","The password was changed recently and minimum password age is preventing the change","The CPM service is disabled and needs to be restarted"],a:[0],e:"winRc=5 = Access Denied → insufficient permissions to change the password."},
+{n:149,t:T.S,y:"mc",q:"You are creating a shared safe for the help desk. What must be considered regarding the naming convention?",o:["The naming convention must be no longer than 20 characters","Combine environments, owners and platforms to minimize the total number of safes","Safe owners should choose a name they can easily remember","The use of these characters \\ / : * < > \" . | is not allowed"],a:[3],e:"Special characters \\ / : * < > \" . | are not allowed in safe names."},
+{n:150,t:T.D,y:"mc",q:"Due to network activity, the PrivateArk Server became active on the DR Vault while the Primary Vault was also running normally (components still point to Primary). Which steps restore DR replication to normal?",o:["Replicate data from DR to Primary > shut down PrivateArk Server on DR > start replication on DR","Shut down PrivateArk Server on DR Vault > start replication on DR Vault","Shut down PrivateArk Server on Primary > replicate DR→Primary > shut down PrivateArk Server on DR > start replication","Shut down PrivateArk Server on DR > replicate DR→Primary > shut down PrivateArk Server on DR > start replication"],a:[1],e:"Components never failed over, so no data to copy back: just stop the PrivateArk Server on the DR Vault and restart replication."},
+{n:151,t:T.V,y:"multi",q:"Which parameters can be used to harden Credential Files (CredFiles) when using the CreateCredFile utility? (Choose three)",o:["Operating System Username","Host IP Address","Client Hostname","Operating System Type (Linux/Windows/HP-UX)","Vault IP Address","Time Frame"],a:[1,2,4],e:"CredFiles can be locked to Host IP, Client Hostname, and Vault IP — restricting where they're valid."},
+{n:152,t:T.P,y:"mc",q:"A new HTML5 Gateway has been deployed. Where do you configure the PSM to use the HTML5 Gateway?",o:["Administration > Options > Privileged Session Management > Configured PSM Servers > Connection Details > Add PSM Gateway","Administration > Options > Privileged Session Management > Add Configured PSM Gateway Servers","Administration > Options > Privileged Session Management > Configured PSM Servers > Add PSM Gateway","Administration > Options > Privileged Session Management > Configured PSM Servers > Connection Details"],a:[2],e:"Under Configured PSM Servers → Add PSM Gateway, specify the deployed HTML5 gateway."},
+{n:153,t:T.R,y:"mc",q:"Which built-in report from the PVWA Reports page displays the number of days until a password is due to expire?",o:["Privileged Accounts Inventory","Privileged Accounts Compliance Status","Activity Log","Privileged Accounts CPM Status"],a:[0],e:"Keyed: Privileged Accounts Inventory (includes password Age). Compliance Status covers overdue/compliance state (Q89)."},
+{n:154,t:T.P,y:"mc",q:"To use PSM connections while in the PVWA, what are the MINIMUM safe permissions a user or group needs?",o:["List Accounts, Use Accounts","List Accounts, Use Accounts, Retrieve Accounts","Use Accounts","List Accounts, Use Accounts, Retrieve Accounts, Access Safe without confirmation"],a:[1],e:"Keyed: List + Use + Retrieve (view accounts, initiate sessions, retrieve creds for the session). Compare Q92 (transparent connect WITHOUT show/copy = Use + List)."},
+{n:155,t:T.R,y:"mc",q:"In a default CyberArk installation, which group must a user be a member of to view the 'reports' page in PVWA?",o:["PVWAMonitor","ReportUsers","PVWAReports","Operators"],a:[0],e:"Default ManageReportsGroup = PVWAMonitor. (Q65 keys 'Auditors' for a near-identical question — know both.)"},
+{n:156,t:T.S,y:"match",q:"Match each permission to where it can be found (Safe level or Vault level).",p:[["Add Accounts","Safe"],["Initiate CPM account management operations","Safe"],["Add/Update Users","Vault"],["Add Safes","Vault"]],a:[],e:"Account-related permissions live on the SAFE; user management and safe creation are VAULT-level authorizations."},
+{n:157,t:T.C,y:"mc",q:"Onboarding 5,000 UNIX root accounts for rotation: the CPM cannot log in directly as root and needs a secondary account. How should this be configured with least privilege?",o:["Configure each CPM to use the correct logon account","Configure each CPM to use the correct reconcile account","Configure the UNIX platform to use the correct logon account","Configure the UNIX platform to use the correct reconcile account"],a:[2],e:"Set the logon account at PLATFORM level — one setting covers all 5,000 accounts, using a minimally-privileged logon account."},
+{n:158,t:T.U,y:"mc",q:"You are creating a new REST API user that utilizes CyberArk Authentication. What is a correct process to provision this user?",o:["PrivateArk Client > Tools > Administrative Tools > Users and Groups > New > User","PrivateArk Client > Tools > Administrative Tools > Directory Mapping > Add","PVWA > User Provisioning > LDAP Integration > Add Mapping","PVWA > User Provisioning > Users and Groups > New > User"],a:[3],e:"Keyed: PVWA → User Provisioning → Users and Groups → New → User (CyberArk-authenticated user for REST)."},
+{n:159,t:T.A,y:"mc",q:"Which command configures email alerts within PTA if settings need to be changed post-install?",o:["/opt/tomcat/utility/emailConfiguration.sh","/opt/PTA/emailConfiguration.sh","/opt/PTA/utility/emailConfig.sh","/opt/tomcat/utility/emailSetup.sh"],a:[0],e:"/opt/tomcat/utility/emailConfiguration.sh — prompts for SMTP/S, server IP, port, sender/recipient addresses."},
+{n:160,t:T.O,y:"mc",q:"Which permissions are needed for the Active Directory user required by the Windows Discovery process?",o:["Domain Admin","LDAP Admin","Read/Write","Read"],a:[3],e:"Discovery only needs READ on the OU (and sub-OUs) being scanned — no elevated rights."},
+{n:161,t:T.O,y:"mc",q:"To manage automated onboarding rules, a CyberArk user must be a member of which group?",o:["Vault Admins","CPM User","Auditors","Administrators"],a:[0],e:"Vault Admins group manages onboarding rules (auto-onboarding of discovered accounts)."},
+{n:162,t:T.M,y:"mc",q:"Your organization requires users to 'check out passwords' AND connect to targets with the same account through the PSM. What must be configured in the Master Policy?",o:["Enforce check-in/check-out exclusive access = active; Require privileged session monitoring and isolation = active","Both inactive","Exclusive access = inactive; Record and save session activity = active","Exclusive access = active; Record and save session activity = inactive"],a:[0],e:"Exclusive check-in/check-out (checkout semantics) + session monitoring/isolation (PSM connections) — both active."},
+{n:163,t:T.O,y:"mc",q:"When onboarding multiple accounts from the Pending Accounts list, which associated setting must be the SAME across the selected accounts?",o:["Platform","Connection Component","CPM","Vault"],a:[0],e:"Bulk onboarding from Pending requires all selected accounts to share the same platform (dependencies onboard automatically)."},
+{n:164,t:T.P,y:"mc",q:"In PVWA you play a session recording but there's no 'fast forward', it only allows skipping between commands, and you can't download the video. What is the cause?",o:["The recording is of a PSM for SSH session","Your browser is out of date","You lack the 'View Audit' permission on the safe","You need to update recorder settings to capture every 10000 ms or less"],a:[0],e:"PSM for SSH produces text/command-based recordings — you jump between commands; there's no video file to scrub or download."},
+{n:165,t:T.O,y:"mc",q:"When using the AccountUploader utility to create accounts with SSH keys, which parameter sets the full or relative path of the SSH private key file attached to the account?",o:["KeyPath","KeyFile","ObjectName","Address"],a:[1],e:"KeyFile = path of the SSH private key file to attach to the account being onboarded."},
+{n:166,t:T.U,y:"mc",q:"All auditors are missing the 'Audit Users' Vault permission. Where do you update this permission for all auditors?",o:["PrivateArk Client > Tools > Administrative Tools > Directory Mapping > Vault Authorizations","PrivateArk Client > Tools > Administrative Tools > Users and Groups > Auditors > Authorizations tab","PVWA User Provisioning > LDAP integration > Vault Auditors Mapping > Vault Authorizations","PVWA > Administration > Configuration Options > LDAP integration > Vault Auditors Mapping"],a:[1],e:"PrivateArk Client → Users and Groups → Auditors group → Authorizations tab → grant Audit Users."},
+{n:167,t:T.U,y:"mc",q:"A new domain controller has been added to your domain. Which locations must you update so CyberArk can use it for authentication?",o:["On the Vault server in Windows\\System32\\Etc\\Hosts AND in PVWA under Administration > LDAP Integration > Directories > Hosts","Hosts file on the Vault server AND hosts file on the PVWA server","PrivateArk client under Tools > Administrative Tools > Directory Mapping","Certificate stores on the Vault and PVWA servers"],a:[0],e:"Add the DC to the Vault's hosts file + the PVWA's LDAP Integration → Directories → Hosts list."},
+{n:168,t:T.O,y:"mc",q:"Which statement is correct concerning accounts that are discovered but cannot be added to the Vault by an automated onboarding rule?",o:["They are added to the Pending Accounts list and can be reviewed and manually uploaded","They cannot be onboarded to the Password Vault","They must be uploaded using third-party tools","They are not part of the Discovery process"],a:[0],e:"No matching rule → Pending Accounts list → manual review/onboarding."},
+{n:169,t:T.P,y:"mc",q:"Which item is an option for PSM recording customization?",o:["Windows events text recorder with automatic play-back","Windows events text recorder and universal keystrokes recording simultaneously","Universal keystrokes text recorder with Windows events text recorder disabled","Custom audio recording for Windows events"],a:[2],e:"Universal keystrokes and Windows-events recorders can't run together on the same PSM-RDP connection — disable Windows events to enable universal keystrokes."},
+{n:170,t:T.A,y:"match",q:"Match each PTA alert category with the sensors that collect its data.",p:[["Unmanaged privileged account","Network Sensor, PTA Windows Agent"],["Anomalous access to multiple machines","Logs, Vault (optionally AWS/Azure)"],["Suspicious activities in a privileged session","Logs, Vault (optionally AD/AWS/Azure)"],["Suspected credentials theft","Network Sensor, PTA Windows Agent"]],a:[],e:"Network-borne detections (unmanaged account, credential theft) come from the Network Sensor / Windows Agent; behavioral ones from Logs + Vault (+cloud/AD)."},
+{n:171,t:T.V,y:"mc",q:"ACME Corp wants to store the Safes Data on Drive D instead of Drive C. Which file should you edit?",o:["TSparm.ini","Vault.ini","DBparm.ini","user.ini"],a:[0],e:"TSParm.ini holds the Safes data location (SafesDirectory) — edit it to move storage to another drive."},
+{n:172,t:T.U,y:"mc",q:"Which option in the PrivateArk client is used to update users' Vault group memberships?",o:["Update > General tab","Update > Authorizations tab","Update > Member Of tab","Update > Group tab"],a:[2],e:"Member Of tab manages the groups a user belongs to."},
+{n:173,t:T.O,y:"multi",q:"Which of the following properties are MANDATORY when adding accounts from a file? (Choose three)",o:["Safe Name","Platform ID","All required properties specified in the Platform","Username","Address","Hostname"],a:[0,1,2],e:"Safe Name (where it's stored) + Platform ID (policy applied) + whatever properties that platform marks required."},
+{n:174,t:T.A,y:"mc",q:"Which Automatic Remediation is configurable for a PTA detection of 'Suspected Credential Theft'?",o:["Add to Pending","Rotate Credentials","Reconcile Credentials","Disable Account"],a:[1],e:"Suspected credential theft → Rotate Credentials (auto password change). Unmanaged account → Add to Pending; suspicious password change → Reconcile (see Q232)."},
+{n:175,t:T.P,y:"multi",q:"Users are unable to launch Web Type Connection components from the PSM server. Which logs will help CyberArk Support debug the issue? (Choose three)",o:["PSMConsole.log","PSMDebug.log","PSMTrace.log","<Session_ID>.Component.log","PMconsole.log","ITAlog.log"],a:[0,2,3],e:"PSMConsole.log (PSM function errors), PSMTrace.log (trace messages), <SessionID>.Component.log (per-connection-component errors)."},
+{n:176,t:T.D,y:"multi",q:"You notice an authentication failure entry for the DR user in the ITALog. What is the correct process to fix this error? (Choose two)",o:["PrivateArk Client > Users and Groups > DR User > Update > Authentication > Update Password","Create a new credential file on the DR Vault using CreateCredFile with the newly set password","Create a new credential file on the PRIMARY Vault using CreateCredFile","PVWA > User Provisioning > Users and Groups > DR User > Update Password","PrivateArk Client > PAReplicate User > Update Password"],a:[0,1],e:"Reset the DR user's password in PrivateArk, then regenerate the credential file ON THE DR VAULT with CreateCredFile."},
+{n:177,t:T.D,y:"mc",q:"How do you create a cold storage backup?",o:["On the DR Vault, install PAReplicate per the Installation guide, configure the logon ini file, and define scheduled tasks for full and incremental backups","Install the Vault Backup utility on a different machine from the EPV server and trigger the full backup","Configure the backup options in the PVWA","On the DR Vault, configure the cold storage backup path in TSParm.ini"],a:[0],e:"PAReplicate on the DR Vault + logon ini + scheduled full/incremental backups = cold storage backup."},
+{n:178,t:T.U,y:"multi",q:"Which methods can you use to add a user directly to the Vault Admin group? (Choose three)",o:["REST API","PrivateArk Client","PACLI","PVWA","Active Directory","Sailpoint"],a:[0,1,2],e:"REST API, PrivateArk Client, and PACLI can add users directly to the Vault Admins group."},
+{n:179,t:T.U,y:"mc",q:"User EMEALevel2Support has rights: Add/Update Users, Manage Server File Categories, Manage Directory Mapping, Backup All Files, Restore All Files. Why can't they change the password for user 'Operator'?",o:["EMEALevel2Support's hierarchy level is not the same or higher than Operator","EMEALevel2Support lacks the 'Manage Directory Mapping' role","Operator can only be reset by the Master user","EMEALevel2Support does not have rights to reset passwords for other users"],a:[3],e:"None of the listed authorizations includes resetting other users' passwords — the reset-password right is missing."},
+{n:180,t:T.M,y:"multi",q:"Which processes reduce the risk of credential theft? (Choose two)",o:["Require dual control password access approval","Require password change every X days","Enforce check-in/check-out exclusive access","Enforce one-time password access"],a:[1,3],e:"Regular rotation + one-time passwords shrink the window a stolen credential is useful. (Dual control = collusion; exclusive = accountability.)"},
+{n:181,t:T.C,y:"mc",q:"When an account is unable to change its own password, how can you ensure that password RESET with the reconcile account is performed each time instead of a change?",o:["Set RCAllowManualReconciliation to Yes","Set ChangePasswordinResetMode to Yes","Set IgnoreReconcileOnMissingAccount to No","Set UnlockUserOnReconcile to Yes"],a:[2],e:"Keyed: IgnoreReconcileOnMissingAccount = No — the reconcile account (which CAN reset others' passwords) is used each time."},
+{n:182,t:T.R,y:"multi",q:"Which Vault authorizations does a user need to generate the Entitlement Report from the PVWA Reports page? (Choose two)",o:["Manage Users","Audit Users","Read Activity","View Entitlements","List Accounts"],a:[1,3],e:"Keyed: Audit Users + View Entitlements."},
+{n:183,t:T.P,y:"order",q:"From the PVWA, arrange the steps to configure a PSM host to use a new HTML5 Gateway in the correct sequence.",o:["Log in to the PVWA with an administrative user","Navigate to Administration > Options","Right-click Privileged Session Management, then select Add Configured PSM Gateway Servers","Right-click Configured PSM Gateway Servers, then Add PSM Gateway Server","Enter a unique ID for the PSM HTML5 Gateway server","Expand the newly created gateway server and enter the configuration details"],a:[],e:"PVWA admin login → Options → add the Configured PSM Gateway Servers section → add a gateway server → unique ID → fill in details."},
+{n:184,t:T.U,y:"mc",q:"What do you need ON THE VAULT to support LDAP over SSL?",o:["CA Certificate(s) used to sign the External Directory certificate","RECPRV.key","A private key for the external directory","Self-signed certificate(s) for the Vault"],a:[0],e:"Import the signing CA cert(s) into the Vault's Windows certificate store to trust the LDAPS connection."},
+{n:185,t:T.S,y:"mc",q:"In addition to 'add accounts' and 'update account contents', which additional safe permission is required to add a single account?",o:["Upload Accounts Properties","Rename Accounts","Update Account Properties","Manage Safe"],a:[2],e:"Adding a single account also needs Update Account Properties (to set the account's properties)."},
+{n:186,t:T.P,y:"mc",q:"Due to storage constraints, you must disable session monitoring and recording for 500 test accounts. How do you accomplish this?",o:["Master Policy > Session Management > add Exceptions to the platform(s) > disable Session Monitoring and Recording policies","Administration > Platform Management > select the platform(s) > disable Session Monitoring and Recording","Policies > Access Control (Safes) > select the safe(s) > disable policies","Administration > Configuration Options > Options > Privilege Session Management > disable policies"],a:[3],e:"⚠ Keyed D, but community most-voted is B (Platform Management — docs-supported). At minimum remember: this is NOT done per-safe."},
+{n:187,t:T.C,y:"mc",q:"What does the MinValidity parameter on a platform policy determine?",o:["Time between a password retrieval and the account becoming eligible for a password change","Timeout for users signed into the PVWA per global settings","Minimum amount of time that Just-in-Time access is valid","Time in minutes before an empty safe is automatically deleted"],a:[0],e:"MinValidity = guaranteed usable window after retrieval before the CPM may change the password (also releases exclusive accounts)."},
+{n:188,t:T.O,y:"multi",q:"Which accounts can be selected for use in the Windows discovery process? (Choose two)",o:["An account stored in the Vault","An account specified by the user","The Vault Administrator","Any user with Auditor membership","The PasswordManager user"],a:[0,1],e:"Discovery can run with a vaulted account OR manually specified credentials."},
+{n:189,t:T.C,y:"mc",q:"What is required to manage loosely connected devices?",o:["PSM for SSH","EPM","PSM","PTA"],a:[1],e:"Endpoint Privilege Manager (EPM) rotates credentials on Windows/macOS devices that aren't always on the enterprise network."},
+{n:190,t:T.C,y:"multi",q:"Where can reconcile and/or logon accounts be linked to an account? (Choose two)",o:["Account settings","Platform settings","Master policy","Safe settings","Service account settings"],a:[1,3],e:"⚠ Keyed: platform + safe settings. But Q211 (and docs) say ACCOUNT level + PLATFORM level. Know both keyed answers; conceptually: linked accounts are set on the account or via platform parameters."},
+{n:191,t:T.P,y:"mc",q:"You want to build a connector that connects to a website through the Web applications for PSM framework. Which default connector do you duplicate and modify?",o:["PSM-ChromeSample","PSM-WebForm","PSM-WebApp","PSM-WebAppSample"],a:[3],e:"Duplicate PSM-WebAppSample — the sample template for web application connectors."},
+{n:192,t:T.U,y:"mc",q:"A colleague created a directory mapping between AD groups and the Vault. Where can the newly configured directory mapping be tested?",o:["Connect to Active Directory and ensure the organizational unit exists","Check Sailpoint naming, then log into PVWA as 'Administrator'","Search for members that exist only in the mapping group to grant them safe permissions through the PVWA","Connect to PrivateArk as Administrator and look for a user in the Vault Admin group"],a:[2],e:"Search in PVWA for members that only exist in the mapped group — if they resolve, the mapping works."},
+{n:193,t:T.V,y:"multi",q:"You are troubleshooting a PVWA slow response. Which log files should you analyze first? (Choose two)",o:["ITALog.log","web.config","CyberArk.WebApplication.log","CyberArk.WebConsole.log"],a:[2,3],e:"CyberArk.WebApplication.log + CyberArk.WebConsole.log on the PVWA web server (location set by LogFolder in web.config)."},
+{n:194,t:T.V,y:"multi",q:"During an HA node switch you notice an error and the Cluster Vault Manager fails back to the original node. Which logs should you check? (Choose three)",o:["CyberArk Webconsole.log","VaultDB.log","PM_Error.log","ITALog.log","ClusterVault.console.log","logiccontainer.log"],a:[1,2,4],e:"VaultDB.log (database ops), PM_Error.log (password manager errors), ClusterVault.console.log (cluster errors/warnings)."},
+{n:195,t:T.O,y:"multi",q:"What must you specify when configuring a discovery scan for UNIX? (Choose two)",o:["Vault Administrator","CPM Scanner","Root password for each machine","List of machines to scan","Safe for discovered accounts"],a:[1,3],e:"UNIX discovery needs the CPM Scanner + a list (CSV) of machines to scan."},
+{n:196,t:T.O,y:"mc",q:"You want to create a new onboarding rule. Where do you accomplish this?",o:["PVWA > Reports > Unmanaged Accounts > Rules","PVWA > Options > Platform Management > Onboarding Rules","PrivateArk > Tools > Onboarding Rules","PVWA > Accounts > Onboarding Rules"],a:[3],e:"PVWA → Accounts → Onboarding Rules → Create rule (wizard)."},
+{n:197,t:T.S,y:"multi",q:"You created a new safe and need to ensure the user group cannot see the password but CAN connect through the PSM. Which safe permissions must you grant the group? (Choose two)",o:["List Accounts","Use Accounts","Access Safe without Confirmation","Retrieve Files","Confirm Request"],a:[1,3],e:"⚠ Answer key: B + D. Community most-voted (and docs-consistent, see Q92): A List Accounts + B Use Accounts — no Retrieve so the password can't be shown/copied. Know both."},
+{n:198,t:T.P,y:"mc",q:"To change the safe where recordings are kept for a specific platform, which setting must you update in the platform configuration?",o:["SessionRecorderSafe","SessionSafe","RecordingsPath","RecordingLocation"],a:[0],e:"SessionRecorderSafe = the safe storing PSM recordings for that platform (restart PSM / wait ~10 min to apply)."},
+{n:199,t:T.A,y:"mc",q:"If PTA is integrated with a supported SIEM solution, which detection becomes available?",o:["Unmanaged privileged account","Privileged access to the Vault during irregular days","RiskySPN","Exposed credentials"],a:[3],e:"SIEM integration enables 'exposed credentials' detection — connecting with a privileged account without first retrieving it from the Vault."},
+{n:200,t:T.U,y:"mc",q:"When are external vault users and groups synchronized by default?",o:["Once every 24 hours between 1 AM and 5 AM","Once every 24 hours between 7 PM and 12 AM","Every 2 hours","They are not synchronized according to a specific schedule"],a:[0],e:"AutoSyncExternalObjects (DBParm.ini): daily sync with the external directory between 01:00–05:00."},
+{n:201,t:T.R,y:"mc",q:"What does the Export Vault Data (EVD) utility do?",o:["Exports data from the Vault to TXT or CSV files, or to MSSQL databases","Generates a backup file that can be used as a cold backup","Exports all passwords and imports them into another instance of CyberArk","Keeps two active vaults in sync"],a:[0],e:"EVD exports Vault data (safes list, requests, etc.) to TXT/CSV or MSSQL for third-party reporting."},
+{n:202,t:T.C,y:"mc",q:"You are concerned about Windows domain password changes occurring during business hours. Which settings must be updated to ensure passwords are only rotated outside business hours?",o:["Platform policy > Automatic Password Management > Password Change > ToHour & FromHour","Master Policy > Account Change Window > ToHour & FromHour","Administration Settings > CPM Settings > ToHour & FromHour","On each individual account > Edit > Advanced > ToHour & FromHour"],a:[1],e:"⚠ Keyed B (Master Policy Account Change Window) here, but Q228 keys the PLATFORM's FromHour/ToHour for the same requirement — the platform-level answer is what docs support. Know both."},
+{n:203,t:T.O,y:"multi",q:"What are the mandatory fields when onboarding from Pending Accounts? (Choose two)",o:["Address","Safe","Account Description","Platform","CPM"],a:[1,3],e:"Safe (where it's stored) + Platform (policies applied) are mandatory."},
+{n:204,t:T.D,y:"mc",q:"Before failing back to production after a DR exercise, what must you do to maintain audit history from the DR event?",o:["Ensure the Production instance replicates changes that occurred on the Disaster Recovery instance","Briefly stop and start the DR instance before failing components back","Stop the CPM services before starting the production server","Perform an IIS reset on all PVWA servers"],a:[0],e:"Replicate DR → Production first, so audit records and changes made during the DR event aren't lost."},
+{n:205,t:T.P,y:"multi",q:"A user needs to view recorded sessions through the PVWA WITHOUT auditor access. Which safes does the user need access to? (Choose two)",o:["Recordings safe","Safe the account is in","System safe","PVWAConfiguration safe","VaultInternal safe"],a:[0,1],e:"Access to the Recordings safe (where recordings are stored) + the safe holding the account."},
+{n:206,t:T.O,y:"multi",q:"What are the minimum permissions to add multiple accounts from a file when using PVWA bulk-upload? (Choose three)",o:["Add accounts","Rename accounts","Update account content","Update account properties","View safe members","Add safes"],a:[0,2,3],e:"Bulk upload needs: Add accounts + Update account content + Update account properties."},
+{n:207,t:T.S,y:"multi",q:"Which authorizations are REQUIRED in a recording safe to allow a group to view recordings? (Select all that are required)",o:["Retrieve accounts/files","List accounts/files","View audit","Access Safe without confirmation","Create folders"],a:[0,1,2],e:"Required: Retrieve + List + View Audit. NOT required: Access Safe without confirmation, Create folders."},
+{n:208,t:T.U,y:"mc",q:"Where can you check that the LDAP binding is using TCP/636?",o:["Active Directory > Users OU > User Properties > External Bindings > Port","PVWA > LDAP Integration > LDAP > Directories > Hosts > Host","PrivateArk Client > Tools > Administrative Tools > Directory Mapping","From the PVWA, connect to the domain controller using Test-NetConnection on port 636"],a:[3],e:"Test-NetConnection <DC> -Port 636 verifies the secure LDAPS port is listening/reachable."},
+{n:209,t:T.V,y:"mc",q:"What can you do to ensure each component server is operational?",o:["Log on to PVWA (v10 UI), navigate to System Health, and validate each component server is connected to the Vault","Ping each component server","Use the PrivateArk client to connect to the Vault and validate all services are running","Install the Vault Server interface on a remote machine and review ITALog.log"],a:[0],e:"The PVWA System Health dashboard shows each component's connection status to the Vault."},
+{n:210,t:T.C,y:"mc",q:"What is the correct process to install a custom platform from the CyberArk Marketplace?",o:["Locate the custom platform in the Marketplace and click Import","Download the platform from the Marketplace and import it using the PVWA","Contact CyberArk Support for guidance","Duplicate an existing platform and align its settings to the Marketplace platform"],a:[1],e:"Download the platform package from the Marketplace → import via PVWA (Platform Management)."},
+{n:211,t:T.C,y:"multi",q:"Where can you assign a Reconcile account? (Choose two)",o:["In PVWA at the account level","In PVWA in the platform configuration","In the Master Policy of the PVWA","At the Safe level","In the CPM settings"],a:[0,1],e:"Account level (overrides platform) or platform level (ReconcileAccountSafe / ReconcileAccountName). Never in Master Policy. Compare Q190's keyed answer."},
+{n:212,t:T.S,y:"mc",q:"When you try to create an account group you get an unauthorized error, though you can edit other account properties. Which safe permission do you need to manage account groups?",o:["Create folders","Specify next account content","Rename accounts","Manage safe"],a:[3],e:"Manage Safe is required to create/update/delete account groups in a safe."},
+{n:213,t:T.P,y:"mc",q:"You are configuring CyberArk to use HTML5 gateways exclusively for PSM connections. In the PVWA, where do you set DefaultConnectionMethod to HTML5?",o:["Options > Privileged Session Management UI","Options > Privileged Session Management","Options > Privileged Session Management Defaults","Options > Privileged Session Management Interface"],a:[0],e:"Administration > Options > Privileged Session Management UI → DefaultConnectionMethod = HTML5."},
+{n:214,t:T.C,y:"mc",q:"Which statement is TRUE about setting the reconcile account at the platform level?",o:["It is the only way to enable automatic reconciliation of account passwords","CPM performance improves when the reconcile account is set at platform level","A rule can be used to specify the reconcile account dynamically, or a specific reconcile account can be selected","This configuration prevents the association from breaking if the reconcile account moves to a different safe"],a:[2],e:"Platform-level reconcile supports a dynamic rule OR a specific selected account."},
+{n:215,t:T.R,y:"multi",q:"Where can a user with the appropriate permissions generate a report? (Choose two)",o:["PVWA > Reports","PrivateArk Client","Cluster Vault Manager","PrivateArk Server Monitor","PARClient"],a:[0,1],e:"Reports come from the PVWA Reports page and the PrivateArk Client."},
+{n:216,t:T.U,y:"mc",q:"In the PrivateArk client (Tools > Administrative Tools > Users and Groups), which option do you use to update users' Vault group memberships?",o:["Update > General tab","Update > Authorizations tab","Update > Member Of tab","Update > Group tab"],a:[2],e:"Member Of tab = group memberships (Authorizations tab = vault authorizations)."},
+{n:217,t:T.D,y:"order",q:"A DR Vault became active due to a Primary failure. Service on the Primary is restored. Arrange the steps to return the DR Vault to normal standby mode.",o:["Shut down the PrivateArk Server service on the DR Vault","In PADR.ini, set FailoverMode=No and remove the last two lines","Start the PrivateArk Disaster Recovery service"],a:[],e:"Stop PrivateArk Server on DR → edit PADR.ini (FailoverMode=No, delete last two lines) → start the DR service (back to replication)."},
+{n:218,t:T.A,y:"mc",q:"You want to give a newly created group rights to review security events under the Security pane AND update the status of these events. Where must you update the group?",o:["PTAAuthorizationGroups parameter — Administration > Options > PTA","PTAAuthorizationGroups parameter — Administration > Options > General","SecurityEventsAuthorizationGroups — Administration > Security > Options","SecurityEventsFeedAuthorizationGroups — Administration > Options > General"],a:[3],e:"SecurityEventsFeedAuthorizationGroups under Administration > Options > General controls who can view/update security events."},
+{n:219,t:T.M,y:"mc",q:"A password compliance audit found: (1) one-time password access of 20 Domain Admin accounts is not enforced; (2) sessions to domain controllers are not recorded by PSM. What should you do?",o:["Edit the Master Policy and add two policy exceptions: enable 'Enforce one-time password access' and 'Record and save session activity'","Edit safe properties and add two policy exceptions","Edit CPM Settings and add two policy exceptions","Ask Windows admins to add two policy exceptions at Active Directory level"],a:[0],e:"Both OTP enforcement and session recording are Master Policy rules — add exceptions there (scoped by platform)."},
+{n:220,t:T.C,y:"multi",q:"Which dependent accounts does the CPM support out-of-the-box? (Choose three)",o:["Solaris Configuration file","Windows Services","Windows Scheduled Tasks","Windows DCOM Applications","Windows Registry","Key Tab file"],a:[1,2,4],e:"OOTB dependents: Windows Services, Scheduled Tasks, Registry — CPM syncs their passwords with the master account."},
+{n:221,t:T.V,y:"multi",q:"According to CyberArk, which issues most commonly cause installed components to display as disconnected in the System Health Dashboard? (Choose two)",o:["Network instabilities/outages","Vault license expiry","Credential de-sync","Browser compatibility issues","Installed location file corruption"],a:[0,2],e:"Disconnected components = network issues or credential de-sync (component can no longer authenticate to the Vault)."},
+{n:222,t:T.A,y:"mc",q:"Which file must be edited on the Vault to configure it to send data to PTA?",o:["dbparm.ini","PARAgent.ini","my.ini","padr.ini"],a:[0],e:"dbparm.ini holds the syslog-forwarding parameters that send Vault events to PTA."},
+{n:223,t:T.V,y:"mc",q:"When should vault keys be rotated?",o:["When a key is copied to file systems outside the vault","Annually","Whenever a CyberArk user leaves the organization","When migrating to a new data center"],a:[3],e:"Keyed: when migrating to a new data center (keys potentially exposed to new environments). Also rotate whenever exposure is suspected."},
+{n:224,t:T.P,y:"mc",q:"What is required to enable access over SSH to a Unix account through BOTH PSM and PSMP?",o:["The platform must contain connection components for both PSM-SSH and PSMP-SSH","PSM and PSMP must already have stored the SSH fingerprint for the Unix host","The 'Enable PSMP' setting in the Unix platform must be set to Yes","A duplicate platform with the PSMP settings must be created"],a:[0],e:"The platform needs BOTH connection components: PSM-SSH and PSMP-SSH."},
+{n:225,t:T.M,y:"mc",q:"Which statement best describes the difference between one-time password and exclusive access functionality in the Master Policy?",o:["Exclusive access means only a specific group may use the account; after one use the account is deleted from the safe","Exclusive access locks the account indefinitely; OTP replaces invalid passwords","Exclusive access is enabled by default; OTP is for emergencies only","Exclusive access allows only one person to check out an account at a time; OTP schedules a password change after MinValidityPeriod expires"],a:[3],e:"Exclusive = one checkout at a time (locked until check-in). OTP = CPM changes the password after use, once MinValidityPeriod passes."},
+{n:226,t:T.P,y:"multi",q:"Five new local accounts for standalone Windows servers were onboarded, but the Connect button is greyed out for all of them. What should you verify? (Choose three)",o:["The address field is populated with an IP or FQDN of each server","The correct PSM connection component appears within the account platform settings","The address field is blank and the correct PSM connection component is set","Notify the Windows team that CyberArk can't manage local accounts","'Disable automatic management for this account' is not enabled"],a:[0,1,4],e:"Greyed Connect = check address populated, PSM connection component on the platform, and that auto-management isn't disabled."},
+{n:227,t:T.C,y:"mc",q:"When the CPM connects to a database, which interface is most commonly used?",o:["Kerberos","ODBC","VBScript","Sybase"],a:[1],e:"ODBC — CPM manages any database supporting ODBC connections (v2.7+ on the CPM machine)."},
+{n:228,t:T.C,y:"mc",q:"Certain accounts cannot have their passwords updated during business hours. How do you configure this?",o:["Change settings on the CPM configuration safe so access is permitted after business hours only","Update the password change parameters of the platform to match the permitted time frame","Disable automatic CPM management for all accounts on this platform","Add an exception to the Master Policy to allow the action during the permitted time"],a:[1],e:"Platform-level password-change FromHour/ToHour restricts when the CPM rotates passwords. (Compare Q202's keyed Master Policy answer.)"},
+{n:229,t:T.M,y:"mc",q:"Which Master Policy settings ensure non-repudiation?",o:["Require password verification every X days and enforce one-time password access","Enforce check-in/check-out exclusive access and enforce one-time password access","Allow EPV transparent connections and enforce check-in/check-out exclusive access","Allow EPV transparent connections and enforce one-time password access"],a:[1],e:"Exclusive check-in/check-out (one user at a time, traceable) + OTP (no credential reuse) = non-repudiation."},
+{n:230,t:T.U,y:"order",q:"Delegate the rights to unlock users to Tier 1 support (which already has an LDAP group). Arrange the steps in the correct sequence.",o:["Sign in to the PVWA as a local user with the 'Manage Directory Mapping' privilege","Open the LDAP Integration view","Add a Mapping to the existing LDAP integration","Name the new mapping and set the mapping order","Select the required LDAP group and assign the 'Activate Users' authorization"],a:[],e:"PVWA (Manage Directory Mapping) → LDAP Integration → Add Mapping → name + order → assign 'Activate Users' to the LDAP group."},
+{n:231,t:T.S,y:"mc",q:"You have been asked to turn off the time access restrictions for a safe. Where is this setting found?",o:["PrivateArk Client","RestAPI","PVWA","Vault"],a:[2],e:"⚠ Keyed PVWA here, but the identical Q121 keys PrivateArk Client — docs: safe time restrictions are set in the PrivateArk Client (Safe Properties). Know both keyed answers."},
+{n:232,t:T.A,y:"match",q:"Match each automatic remediation to the correct PTA security event.",p:[["Add To Pending","Unmanaged privileged account"],["Rotate Credentials","Suspected credentials theft"],["Reconcile Credentials","Suspicious password change"]],a:[],e:"Unmanaged account → Add to Pending; credential theft → Rotate; suspicious password change → Reconcile."},
+{n:233,t:T.V,y:"mc",q:"You are configuring a Vault HA cluster. Which file should you check to confirm the correct drives have been assigned for the Quorum and Safes data disks?",o:["ClusterVault.ini","my.ini","vault.ini","DBParm.ini"],a:[0],e:"ClusterVault.ini holds the HA cluster configuration, including Quorum and Safes data drive assignments."},
+{n:234,t:T.D,y:"mc",q:"How much disk space do you need on a server to run a FULL replication with PAReplicate?",o:["500 GB","1 TB","Same as disk size on the Satellite Vault","At least the same disk size as the Primary Vault"],a:[3],e:"Full replication needs at least the Primary Vault's disk size."},
+{n:235,t:T.O,y:"mc",q:"The Active Directory user configured for Windows Discovery needs which permission(s) or membership?",o:["Member of Domain Admin group","Member of LDAP Admin group","Read and Write permissions","Read Only permissions"],a:[3],e:"Read-only AD permissions are sufficient for discovery — never Domain Admin."},
+{n:236,t:T.D,y:"mc",q:"Which command generates a full backup of the Vault?",o:["PAReplicate.exe Vault.ini /LogonFromFile user.ini /FullBackup","PAPreBackup.exe C:\\PrivateArk\\Server\\Conf\\Vault.ini Backup/Asdf1234 /full","PARestore.exe PADR.ini /LogonFromFile vault.ini /FullBackup","CAVaultManager.exe RecoverBackupFiles /BackupPoolName BkpSvr1"],a:[0],e:"PAReplicate.exe <Vault.ini> /LogonFromFile <cred file> /FullBackup = full Vault backup. (PARestore restores; CAVaultManager recovers files.)"},
+{n:237,t:T.A,y:"multi",q:"Where can PTA be configured to send alerts? (Choose two)",o:["SIEM","Email","Google Analytics","EVD","PAReplicate"],a:[0,1],e:"PTA alerts go to SIEM systems and Email."},
+{n:238,t:T.P,y:"multi",q:"You created a new platform by duplicating the out-of-the-box 'Linux through SSH' platform. Without any change, which Text Recorder types will the new platform support? (Choose two)",o:["SSH Text Recorder","Universal Keystrokes Text Recorder","Events Text Recorder","SQL Text Recorder","Telnet Commands Text Recorder"],a:[0,1],e:"Duplicated SSH platform supports the SSH Text Recorder and Universal Keystrokes Text Recorder by default."},
+{n:239,t:T.O,y:"mc",q:"Which change could CyberArk make to the REST API that could cause existing scripts to fail?",o:["Adding optional parameters in the request","Adding additional REST methods","Removing parameters","Returning additional values in the response"],a:[2],e:"Removing parameters breaks scripts that depend on them; additions are backward-compatible."},
+];
+const LETTERS="ABCDEFGHIJ";
+const LS="pamdef_v1";
+let S={};try{S=JSON.parse(localStorage.getItem(LS)||"{}")}catch(e){}
+S.stats=S.stats||{};
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+const stat=n=>S.stats[n]||{box:0,seen:0,c:0,w:0};
+function setStat(n,ok){const s=stat(n);s.seen++;if(ok){s.c++;s.box=Math.min(3,Math.max(s.box,1)+1)}else{s.w++;s.box=1}S.stats[n]=s;save();pushCloud()}
+const byN={};QUESTIONS.forEach(q=>byN[q.n]=q);
+const TOPICS=Object.values(T);
+const app=document.getElementById("app");
+const pill=document.getElementById("toppill");
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmtExp(e){return esc(e).replace(/⚠[^.]*\./g,m=>'<span class="warnnote">'+m+'</span>')}
+function weightedPick(pool,count){
+  const arr=pool.map(q=>{const s=S.stats[q.n];const w=(!s||!s.seen)?5:[5,4,1.6,0.5][s.box];return{q,w}});
+  const out=[];
+  while(out.length<count&&arr.length){
+    let tot=0;for(const x of arr)tot+=x.w;
+    let r=Math.random()*tot,idx=arr.length-1;
+    for(let i=0;i<arr.length;i++){r-=arr[i].w;if(r<=0){idx=i;break}}
+    out.push(arr[idx].q);arr.splice(idx,1);
+  }
+  return out;
+}
+let sess=null;
+function goHome(){if(sess&&sess.tick)clearInterval(sess.tick);sess=null;home()}
+function counts(pool){let seen=0,m=0;pool.forEach(q=>{const s=S.stats[q.n];if(s&&s.seen){seen++;if(s.box>=3)m++}});return{seen,m}}
+function home(){
+  pill.textContent=QUESTIONS.length+" questions";
+  const c=counts(QUESTIONS);
+  const pct=Math.round(100*c.m/QUESTIONS.length);
+  let topicRows=TOPICS.map(t=>{
+    const pool=QUESTIONS.filter(q=>q.t===t);if(!pool.length)return"";
+    const tc=counts(pool);const p=Math.round(100*tc.m/pool.length);
+    return `<div class="trow"><div class="tname"><b>${esc(t)}</b> <span class="small">· ${tc.m}/${pool.length} mastered</span><div class="bar"><i style="width:${p}%"></i></div></div><button class="tbtn" onclick="startTopic('${esc(t)}')">Quiz</button><button class="tbtn" onclick="browse('${esc(t)}')">Cram</button></div>`;
+  }).join("");
+  app.innerHTML=`
+  <div class="card">
+    <h1>CyberArk Defender – PAM</h1>
+    <div class="sub">Free practice for the CyberArk Defender (PAM-DEF) certification. Real exam: ~65 questions · 90 minutes · 70% to pass. Master the bank below and you're ready.</div>
+    <div class="statline">
+      <div><b>${c.seen}</b><span>seen</span></div>
+      <div><b style="color:var(--ok)">${c.m}</b><span>mastered</span></div>
+      <div><b>${pct}%</b><span>of bank mastered</span></div>
+    </div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+  </div>
+  <div class="grid">
+    <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
+    <button class="mode" onclick="startSmart()"><span class="ic">🧠</span><b>Smart Review</b><small>20 questions · drills your misses & unseen first (spaced repetition)</small></button>
+    <button class="mode" onclick="startExam()"><span class="ic">⏱️</span><b>Exam Simulator</b><small>65 random questions · 90-minute timer · graded at the end vs 70% pass mark</small></button>
+    <button class="mode" onclick="browse('All')"><span class="ic">📚</span><b>Browse & Cram</b><small>Flashcard mode — flip through every question with answers & explanations</small></button>
+    <button class="mode" onclick="marathonSetup()"><span class="ic">🏁</span><b>Full Marathon</b><small>All ${QUESTIONS.length} questions in the original order · choose your own time limit · instant answers${S.marathon&&S.marathon.results&&S.marathon.results.length<QUESTIONS.length?` · <b style='color:var(--warn)'>resume at Q${S.marathon.results.length+1}</b>`:""}</small></button>
+  </div>
+  <div class="card"><h2>Topics</h2>${topicRows}</div>
+  <div style="text-align:center;margin-top:8px"><a class="reset" onclick="resetAll()">Reset progress</a></div>
+  <div class="foot">Community study tool · Not affiliated with or endorsed by CyberArk</div>`;
+  window.scrollTo(0,0);
+}
+function resetAll(){
+  if(!confirm('Reset all progress?'))return;
+  S.stats={};delete S.marathon;save();
+  if(user&&puterReady){try{puter.kv.set(KVKEY,'{}')}catch(e){}}
+  home();
+}
+function startQuick(){begin({title:"Quick Quiz",pool:QUESTIONS,count:10,defer:false})}
+function startSmart(){begin({title:"Smart Review",pool:QUESTIONS,count:20,defer:false})}
+function startExam(){begin({title:"Exam Simulator",pool:QUESTIONS,count:65,defer:true,random:true})}
+function marathonSetup(){
+  const m=S.marathon;
+  if(m&&m.results&&m.results.length<QUESTIONS.length){
+    if(confirm("Resume your marathon at question "+(m.results.length+1)+" of "+QUESTIONS.length+"?\n\n(Cancel discards the saved run and lets you start over.)")){startMarathon(-1);return}
+    delete S.marathon;save();
+  }
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">🏁 Full Marathon</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">All ${QUESTIONS.length} questions in the original order, with the answer and explanation shown after every question — the fastest way to memorize the whole bank. Your position is saved after each answer, so you can pause anytime and resume where you left off.</div>
+    <h2 style="margin-top:14px">Choose a time limit</h2>
+    <div class="rowbtns">
+      <button class="btn ghost" onclick="startMarathon(0)">No timer</button>
+      <button class="btn ghost" onclick="startMarathon(60)">1 hour</button>
+      <button class="btn ghost" onclick="startMarathon(90)">1.5 hours</button>
+      <button class="btn ghost" onclick="startMarathon(120)">2 hours</button>
+      <button class="btn ghost" onclick="startMarathon(180)">3 hours</button>
+      <button class="btn ghost" onclick="startMarathon(240)">4 hours</button>
+    </div>
+    <div class="rowbtns" style="align-items:center;margin-top:6px">
+      <input class="search" id="marMin" type="number" min="5" max="600" placeholder="Custom minutes" style="max-width:190px;margin:0">
+      <button class="btn" onclick="const v=parseInt(document.getElementById('marMin').value,10);if(v>0)startMarathon(v)">Start with custom time</button>
+    </div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+function startMarathon(mins){
+  let resume=null;
+  if(mins===-1){resume=S.marathon;mins=0}
+  sess={title:"Full Marathon",qs:QUESTIONS.slice(),i:resume?resume.results.length:0,answered:false,
+    results:resume?resume.results.slice():[],defer:false,marathon:true,
+    deadline:(resume?resume.left>0:mins>0)?Date.now()+(resume?resume.left*1000:mins*60000):0,tick:null};
+  if(sess.deadline)sess.tick=setInterval(updateTimer,1000);
+  if(sess.i>=sess.qs.length){finish();return}
+  renderQ();
+}
+function saveMarathon(){
+  S.marathon={results:sess.results.slice(),left:sess.deadline?Math.max(0,Math.round((sess.deadline-Date.now())/1000)):0};
+  save();
+}
+function startTopic(t){begin({title:t,pool:QUESTIONS.filter(q=>q.t===t),count:15,defer:false})}
+function retry(ns){begin({title:"Retry missed",pool:ns.map(n=>byN[n]),count:ns.length,defer:false,random:true})}
+function begin(o){
+  const qs=o.random?shuffle(o.pool).slice(0,o.count):weightedPick(o.pool,Math.min(o.count,o.pool.length));
+  if(!qs.length){alert("No questions available.");return}
+  sess={...o,qs,i:0,answered:false,results:[],deadline:o.defer?Date.now()+90*60*1000:0,tick:null};
+  if(o.defer)sess.tick=setInterval(updateTimer,1000);
+  renderQ();
+}
+function updateTimer(){
+  if(!sess||!sess.deadline)return;
+  const el=document.getElementById("timer");
+  const ms=sess.deadline-Date.now();
+  if(ms<=0){finish();return}
+  if(el){
+    const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000);
+    el.textContent=m>=60?Math.floor(m/60)+":"+String(m%60).padStart(2,"0")+":"+String(s).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  }
+}
+function renderQ(){
+  const q=sess.qs[sess.i];
+  sess.answered=false;sess.sel=new Set();sess.seq=[];
+  let body="";
+  if(q.y==="mc"||q.y==="multi"){
+    body=q.o.map((op,i)=>`<button class="opt" id="opt${i}" onclick="pickOpt(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(op)}</button>`).join("");
+  }else if(q.y==="order"){
+    sess.disp=shuffle(q.o.map((_,i)=>i));
+    body=`<div class="hint">Tap the steps in the correct order. Tap a placed step to remove it.</div><div class="seqzone" id="seq"></div><div id="bank"></div>`;
+  }else if(q.y==="match"){
+    const rights=[...new Set(q.p.map(p=>p[1]))];
+    body=`<div class="hint">Match each item on the left to the correct option.</div>`+q.p.map((p,i)=>`<div class="mrow"><div class="ml">${esc(p[0])}</div><select id="m${i}"><option value="">— select —</option>${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("")}</select></div>`).join("");
+  }
+  const needSubmit=q.y!=="mc"||sess.defer;
+  const multiHint=q.y==="multi"?`<div class="hint">Select ${q.a.length} answer${q.a.length>1?"s":""}.</div>`:"";
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta">
+      <span class="tag">${esc(sess.title)}</span>
+      <span class="tag">Q${q.n} · ${esc(q.t)}</span>
+      <span style="flex:1"></span>
+      <span>${sess.i+1} / ${sess.qs.length}</span>
+      ${sess.deadline?'<span class="timer" id="timer"></span>':""}
+      <span class="tag" style="cursor:pointer" onclick="quitConfirm()">✕ end</span>
+    </div>
+    <div class="qtext">${esc(q.q)}</div>
+    ${multiHint}${body}
+    <div id="fb"></div>
+    <div class="rowbtns">
+      ${needSubmit?`<button class="btn" id="submitBtn" onclick="submitA()" ${q.y==="mc"?"disabled":""}>${sess.defer?"Next →":"Check answer"}</button>`:""}
+    </div>
+  </div>`;
+  if(q.y==="order")refreshOrder();
+  if(sess.deadline)updateTimer();
+  window.scrollTo(0,0);
+}
+function refreshOrder(){
+  const q=sess.qs[sess.i];
+  const seq=document.getElementById("seq"),bank=document.getElementById("bank");
+  seq.innerHTML=sess.seq.length?sess.seq.map((idx,k)=>`<button class="step" onclick="unplace(${k})"><span class="num">${k+1}.</span>${esc(q.o[idx])}</button>`).join(""):'<div class="empty">Your sequence appears here…</div>';
+  bank.innerHTML=sess.disp.filter(i=>!sess.seq.includes(i)).map(i=>`<button class="step" onclick="place(${i})">${esc(q.o[i])}</button>`).join("");
+  const b=document.getElementById("submitBtn");if(b)b.disabled=sess.answered||sess.seq.length!==q.o.length;
+}
+function place(i){if(sess.answered)return;sess.seq.push(i);refreshOrder()}
+function unplace(k){if(sess.answered)return;sess.seq.splice(k,1);refreshOrder()}
+function pickOpt(i){
+  if(sess.answered)return;
+  const q=sess.qs[sess.i];
+  if(q.y==="mc"){
+    sess.sel=new Set([i]);
+    if(!sess.defer){submitA();return}
+    q.o.forEach((_,j)=>document.getElementById("opt"+j).classList.toggle("sel",j===i));
+    const b=document.getElementById("submitBtn");if(b)b.disabled=false;
+  }else{
+    if(sess.sel.has(i))sess.sel.delete(i);else sess.sel.add(i);
+    document.getElementById("opt"+i).classList.toggle("sel",sess.sel.has(i));
+    const b=document.getElementById("submitBtn");if(b)b.disabled=sess.sel.size===0;
+  }
+}
+function grade(q){
+  if(q.y==="mc")return sess.sel.size===1&&q.a.includes([...sess.sel][0]);
+  if(q.y==="multi")return sess.sel.size===q.a.length&&q.a.every(i=>sess.sel.has(i));
+  if(q.y==="order")return sess.seq.length===q.o.length&&sess.seq.every((v,k)=>v===k);
+  if(q.y==="match")return q.p.every((p,i)=>{const el=document.getElementById("m"+i);return el&&el.value===p[1]});
+  return false;
+}
+function answerText(q){
+  if(q.y==="mc"||q.y==="multi")return q.a.map(i=>LETTERS[i]+". "+q.o[i]).join("  ·  ");
+  if(q.y==="order")return q.o.map((s,i)=>(i+1)+". "+s).join("\n");
+  if(q.y==="match")return q.p.map(p=>p[0]+" → "+p[1]).join("\n");
+  return"";
+}
+function submitA(){
+  if(!sess)return;
+  if(sess.answered){nextQ();return}
+  const q=sess.qs[sess.i];
+  const ok=grade(q);
+  sess.answered=true;
+  sess.results.push({n:q.n,ok});
+  setStat(q.n,ok);
+  if(sess.marathon)saveMarathon();
+  if(sess.defer){nextQ();return}
+  showFeedback(q,ok);
+}
+function showFeedback(q,ok){
+  if(q.y==="mc"||q.y==="multi"){
+    q.o.forEach((_,i)=>{
+      const el=document.getElementById("opt"+i);el.disabled=true;
+      if(q.a.includes(i))el.classList.add("ok");
+      else if(sess.sel.has(i))el.classList.add("bad");
+    });
+  }else if(q.y==="match"){
+    q.p.forEach((p,i)=>{const el=document.getElementById("m"+i);el.disabled=true;el.classList.add(el.value===p[1]?"ok":"bad")});
+  }else if(q.y==="order"){
+    document.querySelectorAll("#seq .step,#bank .step").forEach(el=>el.disabled=true);
+  }
+  const fb=document.getElementById("fb");
+  fb.innerHTML=`<div class="fb ${ok?"good":"badf"}">
+    <div class="verdict ${ok?"g":"b"}">${ok?"✓ Correct":"✗ Incorrect"}</div>
+    <div class="ans"><b>Answer:</b> <span style="white-space:pre-wrap">${esc(answerText(q))}</span></div>
+    <div class="exp">${fmtExp(q.e)}</div>
+  </div>`;
+  const b=document.getElementById("submitBtn");
+  if(b){b.disabled=false;b.textContent=sess.i+1>=sess.qs.length?"Finish":"Next →"}
+  else{
+    fb.insertAdjacentHTML("afterend",`<div class="rowbtns"><button class="btn" id="submitBtn" onclick="submitA()">${sess.i+1>=sess.qs.length?"Finish":"Next →"}</button></div>`);
+  }
+  document.getElementById("submitBtn").focus();
+}
+function nextQ(){
+  sess.i++;
+  if(sess.i>=sess.qs.length){finish();return}
+  renderQ();
+}
+function quitConfirm(){
+  if(sess.results.length){
+    const msg=sess.marathon?"Pause and exit? Your marathon position is saved — resume anytime from Full Marathon.":"End this session?";
+    if(!confirm(msg))return;
+  }
+  goHome();
+}
+function finish(){
+  if(sess.tick)clearInterval(sess.tick);
+  if(sess.marathon){delete S.marathon;save()}
+  const res=sess.results;
+  const answeredNs=res.map(r=>r.n);
+  sess.qs.forEach(q=>{if(!answeredNs.includes(q.n)&&sess.defer)res.push({n:q.n,ok:false})});
+  const total=sess.qs.length,correct=res.filter(r=>r.ok).length;
+  const pct=total?Math.round(100*correct/total):0;
+  const missed=res.filter(r=>!r.ok).map(r=>r.n);
+  const isExam=sess.defer;
+  const pass=pct>=70;
+  const perTopic={};
+  res.forEach(r=>{const q=byN[r.n];perTopic[q.t]=perTopic[q.t]||{c:0,t:0};perTopic[q.t].t++;if(r.ok)perTopic[q.t].c++});
+  const topicHtml=Object.entries(perTopic).map(([t,v])=>`<div class="trow"><div class="tname"><b>${esc(t)}</b><div class="bar" style="margin-top:5px"><i style="width:${Math.round(100*v.c/v.t)}%"></i></div></div><span class="small">${v.c}/${v.t}</span></div>`).join("");
+  const missedHtml=missed.map(n=>{const q=byN[n];return`<div class="card"><div class="qmeta"><span class="tag">Q${q.n} · ${esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div></div>`}).join("");
+  sess.tick=null;const missedCopy=missed.slice();sess=null;
+  app.innerHTML=`
+  <div class="card" style="text-align:center">
+    <div class="sub">${isExam?"Exam Simulator result":"Session complete"}</div>
+    <div class="big">${pct}%</div>
+    <div>${correct} of ${total} correct</div>
+    ${isExam?`<div class="passbadge ${pass?"pb-pass":"pb-fail"}">${pass?"PASS — at or above the 70% mark 🎉":"Below 70% — keep drilling"}</div>`:""}
+    <div class="rowbtns" style="justify-content:center;margin-top:10px">
+      ${missedCopy.length?`<button class="btn" onclick='retry(${JSON.stringify(missedCopy)})'>Retry the ${missedCopy.length} missed</button>`:""}
+      <button class="btn ghost" onclick="goHome()">Home</button>
+    </div>
+  </div>
+  ${Object.keys(perTopic).length>1?`<div class="card"><h2>By topic</h2>${topicHtml}</div>`:""}
+  ${missedCopy.length?`<h2 style="margin:18px 4px 6px">Review your misses</h2>${missedHtml}`:""}`;
+  window.scrollTo(0,0);
+}
+let bFilter="All",bSearch="";
+function browse(t){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  bFilter=t||"All";bSearch="";
+  renderBrowse();
+}
+function renderBrowse(){
+  const chips=["All",...TOPICS].map(t=>`<span class="chip ${bFilter===t?"on":""}" onclick="bFilter='${esc(t)}';renderBrowse()">${esc(t)}</span>`).join("");
+  const pool=QUESTIONS.filter(q=>(bFilter==="All"||q.t===bFilter)&&(!bSearch||(q.q+" "+(q.o||[]).join(" ")+" "+q.e).toLowerCase().includes(bSearch)));
+  const cards=pool.map(q=>{
+    const s=S.stats[q.n];const col=!s||!s.seen?"var(--mut)":s.box>=3?"var(--ok)":s.box>=2?"var(--warn)":"var(--bad)";
+    return`<div class="card bcard" onclick="const r=this.querySelector('.rev');r.style.display=r.style.display==='block'?'none':'block'">
+      <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span></div>
+      <div style="font-weight:600;white-space:pre-wrap">${esc(q.q)}</div>
+      <div class="rev" style="display:none"><div class="a" style="white-space:pre-wrap">✔ ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div></div>
+    </div>`;
+  }).join("");
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">Browse & Cram</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">Tap a card to reveal the answer. Dot: grey = unseen, red = struggling, amber = learning, green = mastered.</div>
+    <input class="search" placeholder="Search questions… (e.g. reconcile, PSMConnect, padr.ini)" value="${esc(bSearch)}" oninput="bSearch=this.value.toLowerCase();clearTimeout(window._bt);window._bt=setTimeout(()=>{renderBrowse();const s=document.querySelector('.search');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)">
+    <div class="chips">${chips}</div>
+    <div class="small">${pool.length} question${pool.length===1?"":"s"}</div>
+  </div>${cards}`;
+  window.scrollTo(0,0);
+}
+document.addEventListener("keydown",e=>{
+  if(!sess)return;
+  if(e.key>="1"&&e.key<="9"){const q=sess.qs[sess.i];if((q.y==="mc"||q.y==="multi")&&!sess.answered){const i=+e.key-1;if(i<q.o.length)pickOpt(i)}}
+  if(e.key==="Enter"){const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click()}}
+});
+/* ---- optional sign-in & cross-device progress sync (Puter.js) ----
+   Loads the Puter SDK at runtime; if it can't load (offline, blocked),
+   the button stays hidden and the app runs local-only. */
+const KVKEY="pamdef_stats_v1";
+let user=null,puterReady=false,pushT=null;
+function loadPuter(){
+  return new Promise(res=>{
+    if(window.puter){res(true);return}
+    const s=document.createElement("script");
+    s.src="https://js.puter.com/v2/";
+    s.onload=()=>res(!!window.puter);
+    s.onerror=()=>res(false);
+    document.head.appendChild(s);
+    setTimeout(()=>res(!!window.puter),9000);
+  });
+}
+async function initAuth(){
+  puterReady=await loadPuter();
+  if(!puterReady)return;
+  const btn=document.getElementById("acctBtn");
+  if(btn)btn.style.display="";
+  try{
+    if(puter.auth.isSignedIn()){
+      user=await puter.auth.getUser();
+      await pullCloud();
+      if(!sess)home();
+    }
+  }catch(e){}
+  renderAcct();
+}
+async function acctClick(){
+  if(!puterReady)return;
+  if(user){
+    if(confirm("Sign out? Your progress stays saved in your account and on this device.")){
+      try{puter.auth.signOut()}catch(e){}
+      user=null;renderAcct();
+    }
+    return;
+  }
+  try{
+    await puter.auth.signIn();
+    user=await puter.auth.getUser();
+    await pullCloud();
+    renderAcct();
+    if(!sess)home();
+  }catch(e){/* popup closed */}
+}
+function renderAcct(){
+  const btn=document.getElementById("acctBtn");
+  if(!btn)return;
+  btn.classList.toggle("on",!!user);
+  btn.textContent=user?"☁ "+user.username:"Sign in to sync";
+  btn.title=user?"Progress is syncing to your account. Click to sign out.":"Sign in (free) to keep your progress across devices";
+}
+async function pullCloud(){
+  try{
+    const raw=await puter.kv.get(KVKEY);
+    if(raw){
+      const remote=typeof raw==="string"?JSON.parse(raw):raw;
+      for(const n in remote){
+        const r=remote[n],l=S.stats[n];
+        if(r&&r.seen&&(!l||r.seen>l.seen))S.stats[n]=r;
+      }
+      save();
+    }
+  }catch(e){}
+  pushCloud(0);
+}
+function pushCloud(delay){
+  if(!user||!puterReady)return;
+  clearTimeout(pushT);
+  pushT=setTimeout(()=>{try{puter.kv.set(KVKEY,JSON.stringify(S.stats))}catch(e){}},delay===0?0:1500);
+}
+home();
+initAuth();
+</script>
+
+</body>
+</html>
