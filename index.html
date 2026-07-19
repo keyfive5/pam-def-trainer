@@ -411,17 +411,20 @@ function resetAll(){
 function startQuick(){begin({title:"Quick Quiz",pool:QUESTIONS,count:10,defer:false})}
 function startSmart(){begin({title:"Smart Review",pool:QUESTIONS,count:20,defer:false})}
 function startExam(){begin({title:"Exam Simulator",pool:QUESTIONS,count:65,defer:true,random:true})}
+function marLabel(mins){return mins>0?(mins%60===0?(mins/60)+(mins===60?" hour":" hours"):mins+" min"):"no timer"}
 function marathonSetup(){
   const m=S.marathon;
-  if(m&&m.results&&m.results.length<QUESTIONS.length){
-    if(confirm("Resume your marathon at question "+(m.results.length+1)+" of "+QUESTIONS.length+"?\n\n(Cancel discards the saved run and lets you start over.)")){startMarathon(-1);return}
-    delete S.marathon;save();
-  }
+  const hasSave=m&&m.results&&m.results.length<QUESTIONS.length;
+  const last=S.marLast||0;
   app.innerHTML=`
   <div class="card">
     <div class="qmeta"><h2 style="margin:0">🏁 Full Marathon</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
     <div class="sub">All ${QUESTIONS.length} questions in the original order, with the answer and explanation shown after every question — the fastest way to memorize the whole bank. Your position is saved after each answer, so you can pause anytime and resume where you left off.</div>
-    <h2 style="margin-top:14px">Choose a time limit</h2>
+    <div class="rowbtns" style="margin-top:10px">
+      ${hasSave?`<button class="btn" onclick="startMarathon(-1)">▶ Resume at Q${m.results.length+1}</button>`:""}
+      <button class="btn${hasSave?" ghost":""}" onclick="startMarathon(${last})">🏁 Start from Q1 · ${marLabel(last)}</button>
+    </div>
+    <h2 style="margin-top:18px">${last>0||hasSave?"Or start from Q1 with a different time limit":"Choose a time limit"}</h2>
     <div class="rowbtns">
       <button class="btn ghost" onclick="startMarathon(0)">No timer</button>
       <button class="btn ghost" onclick="startMarathon(60)">1 hour</button>
@@ -440,6 +443,7 @@ function marathonSetup(){
 function startMarathon(mins){
   let resume=null;
   if(mins===-1){resume=S.marathon;mins=0}
+  else{delete S.marathon;S.marLast=mins;save()}
   sess={title:"Full Marathon",qs:QUESTIONS.slice(),i:resume?resume.results.length:0,answered:false,
     results:resume?resume.results.slice():[],defer:false,marathon:true,
     deadline:(resume?resume.left>0:mins>0)?Date.now()+(resume?resume.left*1000:mins*60000):0,tick:null};
@@ -450,6 +454,11 @@ function startMarathon(mins){
 function saveMarathon(){
   S.marathon={results:sess.results.slice(),left:sess.deadline?Math.max(0,Math.round((sess.deadline-Date.now())/1000)):0};
   save();
+}
+function restartMarathon(){
+  if(!confirm("Restart from Q1 ("+marLabel(S.marLast||0)+")? Your current position will be discarded."))return;
+  if(sess&&sess.tick)clearInterval(sess.tick);
+  startMarathon(S.marLast||0);
 }
 function startTopic(t){begin({title:t,pool:QUESTIONS.filter(q=>q.t===t),count:15,defer:false})}
 function retry(ns){begin({title:"Retry missed",pool:ns.map(n=>byN[n]),count:ns.length,defer:false,random:true})}
@@ -493,6 +502,7 @@ function renderQ(){
       <span style="flex:1"></span>
       <span>${sess.i+1} / ${sess.qs.length}</span>
       ${sess.deadline?'<span class="timer" id="timer"></span>':""}
+      ${sess.marathon?'<span class="tag" style="cursor:pointer" onclick="restartMarathon()">↺ restart</span>':""}
       <span class="tag" style="cursor:pointer" onclick="quitConfirm()">✕ end</span>
     </div>
     <div class="qtext">${esc(q.q)}</div>
