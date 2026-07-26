@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 </head>
 <body>
 <title>PAM-DEF Trainer</title>
@@ -346,10 +346,13 @@ const LETTERS="ABCDEFGHIJ";
 const LS="pamdef_v1";
 let S={};try{S=JSON.parse(localStorage.getItem(LS)||"{}")}catch(e){}
 S.stats=S.stats||{};
+S.sets=S.sets||{cleared:{},best:{},cur:0};
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
 const stat=n=>S.stats[n]||{box:0,seen:0,c:0,w:0};
 function setStat(n,ok){const s=stat(n);s.seen++;if(ok){s.c++;s.box=Math.min(3,Math.max(s.box,1)+1)}else{s.w++;s.box=1}S.stats[n]=s;save();pushCloud()}
 const byN={};QUESTIONS.forEach(q=>byN[q.n]=q);
+const SETSIZE=65;
+const SETS=[];for(let i=0;i<QUESTIONS.length;i+=SETSIZE)SETS.push(QUESTIONS.slice(i,i+SETSIZE));
 const TOPICS=Object.values(T);
 const app=document.getElementById("app");
 const pill=document.getElementById("toppill");
@@ -396,6 +399,7 @@ function home(){
     <button class="mode" onclick="startExam()"><span class="ic">⏱️</span><b>Exam Simulator</b><small>65 random questions · 90-minute timer · graded at the end vs 70% pass mark</small></button>
     <button class="mode" onclick="browse('All')"><span class="ic">📚</span><b>Browse & Cram</b><small>Flashcard mode — flip through every question with answers & explanations</small></button>
     <button class="mode" onclick="marathonSetup()"><span class="ic">🏁</span><b>Full Marathon</b><small>All ${QUESTIONS.length} questions in the original order · choose your own time limit · instant answers${S.marathon&&S.marathon.results&&S.marathon.results.length<QUESTIONS.length?` · <b style='color:var(--warn)'>resume at Q${S.marathon.results.length+1}</b>`:""}</small></button>
+    <button class="mode" onclick="setsMenu()"><span class="ic">🎯</span><b>Sets of ${SETSIZE}</b><small>${SETS.length} ordered blocks · get every question in a block right <b>in a row</b>, then advance to the next — your block is saved, so you never drop back to Q1${setsClearedCount()?` · <b style='color:var(--ok)'>${setsClearedCount()}/${SETS.length} cleared</b>`:""}</small></button>
   </div>
   <div class="card"><h2>Topics</h2>${topicRows}</div>
   <div style="text-align:center;margin-top:8px"><a class="reset" onclick="resetAll()">Reset progress</a></div>
@@ -404,7 +408,7 @@ function home(){
 }
 function resetAll(){
   if(!confirm('Reset all progress?'))return;
-  S.stats={};delete S.marathon;save();
+  S.stats={};delete S.marathon;S.sets={cleared:{},best:{},cur:0};save();
   if(user&&puterReady){try{puter.kv.set(KVKEY,'{}')}catch(e){}}
   home();
 }
@@ -460,6 +464,67 @@ function restartMarathon(){
   if(sess&&sess.tick)clearInterval(sess.tick);
   startMarathon(S.marLast||0);
 }
+/* ---- Sets of 65: ordered blocks, all-correct-in-a-row to advance ---- */
+function setsClearedCount(){return SETS.reduce((n,_,i)=>n+(S.sets.cleared[i]?1:0),0)}
+function setRange(i){const q=SETS[i];return"Q"+q[0].n+"–Q"+q[q.length-1].n}
+function setsMenu(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  const cur=S.sets.cur||0;
+  const rows=SETS.map((qs,i)=>{
+    const cleared=!!S.sets.cleared[i];
+    const best=S.sets.best[i]||0;
+    const isCur=i===cur&&!cleared;
+    const status=cleared?`<span style="color:var(--ok)">✓ Cleared</span>`
+      :best>0?`<span class="small">best streak ${best}/${qs.length}</span>`
+      :`<span class="small">not started</span>`;
+    return `<div class="trow">
+      <div class="tname"><b>Set ${i+1}</b> <span class="small">· ${setRange(i)} · ${qs.length} questions</span><div style="margin-top:3px">${status}${isCur?' <span class="tag" style="border-color:var(--ac);color:var(--ac)">current</span>':''}</div></div>
+      <button class="tbtn" onclick="startSet(${i})">${cleared?"Redo":isCur?"Continue":"Start"}</button>
+    </div>`;
+  }).join("");
+  const done=setsClearedCount();
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">🎯 Sets of ${SETSIZE}</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">Each block runs in the original order. Answer <b>every</b> question in the block correctly <b>in a row</b> to clear it — one miss and the block restarts from its first question. Clear a block and you move straight to the next one; your place is saved so you never start over from Q1 of the whole bank.</div>
+    <div class="rowbtns" style="margin-top:6px"><button class="btn" onclick="startSet(${cur})">▶ ${S.sets.cleared[cur]?'Redo':'Continue'} Set ${cur+1} · ${setRange(cur)}</button></div>
+    <div class="bar" style="margin-top:12px"><i style="width:${Math.round(100*done/SETS.length)}%"></i></div>
+    <div class="small" style="margin-top:6px">${done} of ${SETS.length} sets cleared</div>
+  </div>
+  <div class="card"><h2>All sets</h2>${rows}</div>`;
+  window.scrollTo(0,0);
+}
+function startSet(i){
+  if(sess&&sess.tick)clearInterval(sess.tick);
+  S.sets.cur=i;save();
+  sess={title:"Set "+(i+1),setmode:true,setIdx:i,qs:SETS[i].slice(),i:0,answered:false,results:[],streak:0,deadline:0,tick:null};
+  renderQ();
+}
+function restartSet(){
+  sess.i=0;sess.streak=0;sess.answered=false;
+  renderQ();
+}
+function setCleared(){
+  const i=sess.setIdx,len=sess.qs.length;
+  S.sets.cleared[i]=true;S.sets.best[i]=len;
+  if((S.sets.cur||0)<=i&&i+1<SETS.length)S.sets.cur=i+1;
+  save();
+  const hasNext=i+1<SETS.length;
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  app.innerHTML=`
+  <div class="card" style="text-align:center">
+    <div class="big" style="color:var(--ok)">🎉</div>
+    <h1 style="margin:4px 0">Set ${i+1} cleared!</h1>
+    <div class="sub">You got all ${len} questions right in a row (${setRange(i)}).</div>
+    <div class="rowbtns" style="justify-content:center;margin-top:14px">
+      ${hasNext?`<button class="btn" onclick="startSet(${i+1})">Start Set ${i+2} · ${setRange(i+1)} →</button>`:`<div class="passbadge pb-pass">🏆 Every set cleared — you know the whole bank!</div>`}
+      <button class="btn ghost" onclick="setsMenu()">All sets</button>
+      <button class="btn ghost" onclick="goHome()">Home</button>
+    </div>
+  </div>
+  ${!hasNext?"":`<div class="card"><div class="small">You're on a roll — Set ${i+2} picks up right where you left off. No need to redo the ${i+1} block${i>0?'s':''} you've already mastered.</div></div>`}`;
+  window.scrollTo(0,0);
+}
 function startTopic(t){begin({title:t,pool:QUESTIONS.filter(q=>q.t===t),count:15,defer:false})}
 function retry(ns){begin({title:"Retry missed",pool:ns.map(n=>byN[n]),count:ns.length,defer:false,random:true})}
 function begin(o){
@@ -501,8 +566,10 @@ function renderQ(){
       <span class="tag">Q${q.n} · ${esc(q.t)}</span>
       <span style="flex:1"></span>
       <span>${sess.i+1} / ${sess.qs.length}</span>
+      ${sess.setmode?`<span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ ${sess.i}/${sess.qs.length} in a row</span>`:""}
       ${sess.deadline?'<span class="timer" id="timer"></span>':""}
       ${sess.marathon?'<span class="tag" style="cursor:pointer" onclick="restartMarathon()">↺ restart</span>':""}
+      ${sess.setmode?'<span class="tag" style="cursor:pointer" onclick="restartSet()">↺ restart</span>':""}
       <span class="tag" style="cursor:pointer" onclick="quitConfirm()">✕ end</span>
     </div>
     <div class="qtext">${esc(q.q)}</div>
@@ -554,15 +621,28 @@ function answerText(q){
 }
 function submitA(){
   if(!sess)return;
-  if(sess.answered){nextQ();return}
+  if(sess.answered){afterFeedback();return}
   const q=sess.qs[sess.i];
   const ok=grade(q);
-  sess.answered=true;
+  sess.answered=true;sess.lastOk=ok;
   sess.results.push({n:q.n,ok});
   setStat(q.n,ok);
   if(sess.marathon)saveMarathon();
+  if(sess.setmode){
+    const reached=ok?sess.i+1:sess.i; // correct-in-a-row after this answer
+    if(reached>(S.sets.best[sess.setIdx]||0)){S.sets.best[sess.setIdx]=reached;save()}
+  }
   if(sess.defer){nextQ();return}
   showFeedback(q,ok);
+}
+function afterFeedback(){
+  if(!sess)return;
+  if(sess.setmode){
+    if(!sess.lastOk){restartSet();return}
+    if(sess.i+1>=sess.qs.length){setCleared();return}
+    sess.i++;renderQ();return;
+  }
+  nextQ();
 }
 function showFeedback(q,ok){
   if(q.y==="mc"||q.y==="multi"){
@@ -576,16 +656,27 @@ function showFeedback(q,ok){
   }else if(q.y==="order"){
     document.querySelectorAll("#seq .step,#bank .step").forEach(el=>el.disabled=true);
   }
+  const last=sess.i+1>=sess.qs.length;
+  let setNote="",label;
+  if(sess.setmode){
+    setNote=ok
+      ? `<div class="small" style="margin-top:8px;color:var(--ok)">${last?`All ${sess.qs.length} correct in a row! 🎉`:`✓ ${sess.i+1}/${sess.qs.length} in a row — keep going`}</div>`
+      : `<div class="small warnnote" style="margin-top:8px">Streak broken at ${sess.i}/${sess.qs.length}. Restart the set and try again for the full run.</div>`;
+    label=ok?(last?"🎉 Clear set":"Next →"):"↻ Restart set";
+  }else{
+    label=last?"Finish":"Next →";
+  }
   const fb=document.getElementById("fb");
   fb.innerHTML=`<div class="fb ${ok?"good":"badf"}">
     <div class="verdict ${ok?"g":"b"}">${ok?"✓ Correct":"✗ Incorrect"}</div>
     <div class="ans"><b>Answer:</b> <span style="white-space:pre-wrap">${esc(answerText(q))}</span></div>
     <div class="exp">${fmtExp(q.e)}</div>
+    ${setNote}
   </div>`;
   const b=document.getElementById("submitBtn");
-  if(b){b.disabled=false;b.textContent=sess.i+1>=sess.qs.length?"Finish":"Next →"}
+  if(b){b.disabled=false;b.textContent=label}
   else{
-    fb.insertAdjacentHTML("afterend",`<div class="rowbtns"><button class="btn" id="submitBtn" onclick="submitA()">${sess.i+1>=sess.qs.length?"Finish":"Next →"}</button></div>`);
+    fb.insertAdjacentHTML("afterend",`<div class="rowbtns"><button class="btn" id="submitBtn" onclick="submitA()">${label}</button></div>`);
   }
   document.getElementById("submitBtn").focus();
 }
@@ -595,10 +686,14 @@ function nextQ(){
   renderQ();
 }
 function quitConfirm(){
+  const wasSet=sess&&sess.setmode;
   if(sess.results.length){
-    const msg=sess.marathon?"Pause and exit? Your marathon position is saved — resume anytime from Full Marathon.":"End this session?";
+    const msg=sess.marathon?"Pause and exit? Your marathon position is saved — resume anytime from Full Marathon."
+      :wasSet?("Leave this set? Your current set is saved — pick it back up any time from Sets of "+SETSIZE+".")
+      :"End this session?";
     if(!confirm(msg))return;
   }
+  if(wasSet){setsMenu();return}
   goHome();
 }
 function finish(){
@@ -681,6 +776,7 @@ function loadPuter(){
   });
 }
 async function initAuth(){
+  if(window.__IOS_APP__)return; // native wrapper: on-device progress only, no popup sign-in
   puterReady=await loadPuter();
   if(!puterReady)return;
   const btn=document.getElementById("acctBtn");
