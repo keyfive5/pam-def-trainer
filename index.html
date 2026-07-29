@@ -42,6 +42,9 @@ h2{font-size:18px;margin:0 0 10px}
 .opt{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--br);color:var(--tx);padding:12px 14px;border-radius:12px;margin:8px 0;cursor:pointer;font:inherit;line-height:1.45}
 .opt:hover:not(:disabled){border-color:var(--ac)}
 .opt.sel{border-color:var(--ac);background:#24356b}
+.opt.cur{border-color:var(--ac);box-shadow:0 0 0 2px rgba(124,154,255,.5)}
+.kbhint{font-size:12px;color:var(--mut);margin-top:10px}
+.kbhint kbd{background:var(--card2);border:1px solid var(--br);border-radius:5px;padding:1px 6px;font:inherit;font-size:11px;color:var(--tx)}
 .opt.ok{border-color:var(--ok);background:rgba(52,211,153,.13)}
 .opt.bad{border-color:var(--bad);background:rgba(248,113,113,.13)}
 .opt:disabled{cursor:default;opacity:1}
@@ -87,6 +90,9 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .acct:hover{background:#24356b}
 .acct.on{color:var(--ok);border-color:var(--ok)}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+.ref{margin-top:10px;font-size:13px}
+.ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
+.ref a:hover{border-bottom-color:var(--ac)}
 .hint{font-size:13px;color:var(--warn);margin-bottom:8px}
 .statline{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0}
 .statline div b{font-size:22px;display:block}
@@ -129,7 +135,7 @@ const QUESTIONS=[
 {n:22,t:T.C,y:"mc",q:"What is the purpose of the HeadStartInterval setting in a platform?",o:["It determines how far in advance audit data is collected for reports","It instructs the CPM to initiate the password change process X number of days before expiration","It instructs the AIM Provider to 'skip the cache' during the defined time period","It alerts users of upcoming password changes X days before expiration"],a:[1],e:"HeadStartInterval = days before expiration (ExpirationPeriod) that the CPM starts the change process, so a valid password is always available."},
 {n:23,t:T.C,y:"mc",q:"It is possible to restrict the time of day, or day of week, that a RECONCILE process can occur.",o:["TRUE","FALSE"],a:[0],e:"TRUE — platform reconcile settings (RCFromHour/RCToHour/RCExecutionDays) restrict when reconciliation runs."},
 {n:24,t:T.M,y:"mc",q:"Which of the following options is NOT set in the Master Policy?",o:["Password Expiration Time","Enabling/Disabling of the Connection Through the PSM","Password Complexity","The use of One-Time-Passwords"],a:[2],e:"Password Complexity is a technical PLATFORM setting. Expiration, PSM connections, and OTP are Master Policy rules."},
-{n:25,t:T.M,y:"mc",q:"The primary purpose of exclusive accounts is to ensure non-repudiation (individual accountability).",o:["TRUE","FALSE"],a:[0],e:"TRUE — exclusive accounts are locked to one user at a time, enforcing individual accountability. (See Q78 — the answer key uses 'collusion to commit' for an alternate phrasing; know both.)"},
+{n:25,t:T.M,y:"mc",q:"The primary purpose of exclusive accounts is to ensure non-repudiation (individual accountability).",o:["TRUE","FALSE"],a:[0],e:"TRUE — exclusive accounts are locked to one user at a time, so every action is traceable to one person (individual accountability). Trio to memorize: One-Time Passwords → reduce theft risk; Exclusive → accountability; Dual Control → prevent collusion (Q62/Q78)."},
 {n:26,t:T.C,y:"mc",q:"You associated a logon account with one of your UNIX root accounts in the vault. When attempting to CHANGE the root account's password, the CPM will…",o:["Log in to the system as root, then change root's password","Log in to the system as the logon account, then change root's password","Log in to the system as the logon account, run the su command to log in as root, and then change root's password","None of these"],a:[2],e:"The CPM logs in with the logon account (root SSH is blocked), elevates via su to root, then changes the password."},
 {n:27,t:T.C,y:"mc",q:"It is possible to restrict the time of day, or day of week, that a VERIFY process can occur.",o:["TRUE","FALSE"],a:[0],e:"TRUE — the platform's verify time window (VFFromHour/VFToHour etc.) restricts when verification runs, reducing target/network load in peak hours."},
 {n:28,t:T.M,y:"multi",q:"Which of the following can be configured in the Master Policy? Choose all that apply.",o:["Dual Control","One Time Passwords","Exclusive Passwords","Password Reconciliation","Ticketing Integration","Required Properties","Custom Connection Components","Password Aging Rules"],a:[0,1,2,7],e:"Master Policy = workflows (Dual Control, OTP, Exclusive) + password aging + session/audit rules. Reconciliation, ticketing, required properties and connection components are PLATFORM settings/processes."},
@@ -166,27 +172,27 @@ const QUESTIONS=[
 {n:60,t:T.S,y:"mc",q:"Vault admins must manually add the auditors' group to newly created safes so auditors will have sufficient access to run reports.",o:["TRUE","FALSE"],a:[1],e:"FALSE — the Auditors group is automatically added to every safe by default (View Audit); admins may remove it from specific safes."},
 {n:61,t:T.P,y:"mc",q:"Which of the following Privileged Session Management solutions provide a detailed audit log of session activities?",o:["PSM (launching connections via the Connect button in PVWA)","PSM for Windows (previously RDP Proxy)","PSM for SSH (previously PSM SSH Proxy)","All of the above"],a:[3],e:"All PSM flavors produce detailed session audits and recordings (plus SQL/Windows-events/keystroke audits)."},
 {n:62,t:T.M,y:"mc",q:"What is the primary purpose of Dual Control?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud ensuring no single actor may use a password without authorization"],a:[3],e:"Dual Control = at least two people involved (requester + approver) → no single actor can act alone. Memorize the trio: OTP→theft risk, Exclusive→accountability, Dual Control→collusion."},
-{n:63,t:T.S,y:"mc",q:"Time of day or day of week restrictions on when password VERIFICATIONS can occur are configured in ________.",o:["The Master Policy","The Platform settings","The Safe settings","The Account Details"],a:[2],e:"Keyed: Safe settings (safes can be limited to certain hours). Note: platform-level FromHour/ToHour also restrict CPM verify/change windows — see Q27/Q228."},
+{n:63,t:T.C,y:"mc",q:"Time of day or day of week restrictions on when password VERIFICATIONS can occur are configured in ________.",o:["The Master Policy","The Platform settings","The Safe settings","The Account Details"],a:[1],e:"Platform settings. The platform sets the verification window via VFFromHour / VFToHour and the days via VFExecutionDays (Automatic Password Management → Password Verification). Change and reconcile timing are likewise platform-level (see Q23 / Q27 / Q228). ✎ Corrected: an earlier answer key said 'Safe settings' — that's the safe's access-hours feature, a different thing.",r:["CyberArk Docs — Password Verification (VFFromHour / VFToHour / VFExecutionDays)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasref/automatic%20password%20management%20-%20password%20verification.htm"]},
 {n:64,t:T.C,y:"mc",q:"Which parameter controls how often the CPM looks for accounts that need to be changed from recently completed Dual Control requests?",o:["HeadStartInterval","Interval","ImmediateInterval","The CPM does not change the password under this circumstance"],a:[1],e:"Keyed: Interval — the CPM's periodic cycle picks up accounts to change after completed Dual Control requests."},
-{n:65,t:T.R,y:"mc",q:"According to the DEFAULT Web Options settings, which group grants access to the REPORTS page?",o:["PVWAUsers","Vault Admins","Auditors","PVWAMonitor"],a:[2],e:"⚠ Keyed 'Auditors' here but 'PVWAMonitor' for the same question at Q155 — CyberArk docs: ManageReportsGroup default = PVWAMonitor. Know both phrasings."},
+{n:65,t:T.R,y:"mc",q:"According to the DEFAULT Web Options settings, which group grants access to the REPORTS page?",o:["PVWAUsers","Vault Admins","Auditors","PVWAMonitor"],a:[3],e:"PVWAMonitor. Reports are generated by users in the group named by the ManageReportsGroup parameter (Web Access Options → Reports); its default value is PVWAMonitor. Same answer as Q155. ✎ Corrected from 'Auditors' per CyberArk docs.",r:["CyberArk Docs — Manage reports in the PVWA (ManageReportsGroup default = PVWAMonitor)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/reports-manage-in-pvwa.htm"]},
 {n:66,t:T.M,y:"mc",q:"Which Master Policy setting must be active in order to have an account checked out by ONE user for a pre-determined amount of time?",o:["Require dual control password access approval","Enforce check-in/check-out exclusive access","Enforce one-time password access","Enforce check-in/check-out exclusive access AND enforce one-time password access"],a:[1],e:"Exclusive access = check-out locks the account to one user until check-in; duration configured on the platform."},
 {n:67,t:T.O,y:"mc",q:"The Password Upload Utility must run from the CPM server.",o:["TRUE","FALSE"],a:[0],e:"TRUE (as keyed) — the utility runs from the CPM server command line, uploading passwords from a prepared file."},
 {n:68,t:T.S,y:"mc",q:"For a safe with Object Level Access enabled, you can turn off Object Level Access Control when it is no longer needed on the safe.",o:["TRUE","FALSE"],a:[1],e:"FALSE — once OLAC is enabled on a safe it CANNOT be disabled."},
 {n:69,t:T.V,y:"mc",q:"The vault supports Subnet Based Access Control.",o:["TRUE","FALSE"],a:[0],e:"TRUE — access can be restricted by network area/subnet (and firewall rules limiting specific IPs)."},
 {n:70,t:T.O,y:"mc",q:"When creating an onboarding rule, it will be executed upon:",o:["All accounts in the pending accounts list","Any future accounts discovered by a discovery process","Both — all pending accounts AND any future discovered accounts"],a:[2],e:"Onboarding rules apply retroactively to the pending list AND to future discoveries."},
-{n:71,t:T.V,y:"mc",q:"How does the Vault administrator apply a new license file?",o:["Upload license.xml to the system Safe and restart the PrivateArk Server service","Upload license.xml to the system Safe","Upload license.xml to the Vault Internal Safe and restart the PrivateArk Server service","Upload license.xml to the Vault Internal Safe"],a:[2],e:"Keyed: Vault Internal Safe + restart PrivateArk Server. ⚠ Q76 accepts 'system Safe' — docs say the license lives in the system safe; know the keyed answer per phrasing."},
+{n:71,t:T.V,y:"mc",q:"How does the Vault administrator apply a new license file?",o:["Upload license.xml to the system Safe and restart the PrivateArk Server service","Upload license.xml to the system Safe","Upload license.xml to the Vault Internal Safe and restart the PrivateArk Server service","Upload license.xml to the Vault Internal Safe"],a:[1],e:"Store the new license.xml in the root of the SYSTEM safe (via the PrivateArk Client) — the Vault installs it automatically, no service restart required. It's the System safe, not a 'Vault Internal' safe. Consistent with Q76. ✎ Corrected from 'Vault Internal Safe + restart'.",r:["CyberArk Docs — Manage the CyberArk License","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/managing-the-cyberark-license.htm"]},
 {n:72,t:T.M,y:"mc",q:"When Dual Control is enabled, a user must first submit a request in the PVWA and receive approval before being able to launch a secure connection via PSM for Windows.",o:["True","False — a user can submit the request after the connection has already been initiated"],a:[0],e:"TRUE — with Dual Control, confirmation from authorized safe owner(s) is required BEFORE the PSM connection can be launched."},
 {n:73,t:T.A,y:"mc",q:"Which of the following PTA detections require the deployment of a Network Sensor or installing the PTA Agent on the domain controller?",o:["Suspected credential theft","Over-Pass-The-Hash","Golden Ticket","Unmanaged privileged access"],a:[2],e:"Golden Ticket (forged Kerberos TGT) detection needs the Network Sensor or PTA Agent on the DC to inspect Kerberos traffic anomalies."},
 {n:74,t:T.P,y:"mc",q:"Via PVWA, a user initiates a PSM connection to a target Linux machine using RemoteApp. When the client machine makes an RDP connection to the PSM server, which user is utilized?",o:["Credentials stored in the Vault for the target machine","Shadowuser","PSMConnect","PSMAdminConnect"],a:[2],e:"End-user sessions connect to the PSM server as PSMConnect. (Auditors live-monitoring use PSMAdminConnect — Q83.)"},
 {n:75,t:T.R,y:"mc",q:"Which report shows the accounts that are accessible to each user?",o:["Activity report","Entitlement report","Privileged Accounts Compliance Status report","Applications Inventory report"],a:[1],e:"Entitlement report = each user's effective access control/authorization level on every account they can reach."},
-{n:76,t:T.V,y:"mc",q:"The Vault administrator can change the Vault license by uploading the new license to the system Safe.",o:["True","False"],a:[0],e:"TRUE — upload license.xml to the system Safe (PrivateArk client), replacing the current file; no reinstall needed. Compare wording with Q71."},
+{n:76,t:T.V,y:"mc",q:"The Vault administrator can change the Vault license by uploading the new license to the system Safe.",o:["True","False"],a:[0],e:"TRUE — upload license.xml to the root of the System safe via the PrivateArk Client, replacing the current file; the Vault installs it automatically, no reinstall needed. Consistent with Q71.",r:["CyberArk Docs — Manage the CyberArk License","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/managing-the-cyberark-license.htm"]},
 {n:77,t:T.C,y:"mc",q:"A logon account is associated with a Unix root account. When attempting to VERIFY the root account's password, the CPM will:",o:["Ignore the logon account and attempt to log in as root","Prompt the end user with a dialog box asking for the login account to use","Log in first with the logon account, then run the su command to log in as root using the password in the Vault","None of these"],a:[2],e:"Same flow as change: sign in with logon account → su to root → verify with the vaulted password."},
-{n:78,t:T.M,y:"mc",q:"Which is the primary purpose of exclusive accounts?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud ensuring no single actor may use a password without authorization"],a:[3],e:"⚠ Keyed D here, but Q25 keys non-repudiation TRUE for exclusive accounts (and docs agree: exclusive = one user at a time = individual accountability). Know both keyed answers."},
+{n:78,t:T.M,y:"mc",q:"Which is the primary purpose of exclusive accounts?",o:["Reduced risk of credential theft","More frequent password changes","Non-repudiation (individual accountability)","To force a 'collusion to commit' fraud ensuring no single actor may use a password without authorization"],a:[2],e:"Non-repudiation / individual accountability — an exclusive account is locked to one user at a time, so every action traces to a single person. Consistent with Q25. (Reduced theft risk = One-Time Passwords; 'collusion to commit' = Dual Control, Q62.) ✎ Corrected from the 'collusion' option.",r:["CyberArk Docs — Account check-out and check-in (exclusive accounts)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/accounts-check-out-and-check-in.htm"]},
 {n:79,t:T.P,y:"mc",q:"What is the chief benefit of PSM?",o:["Privileged session isolation","Automatic password management","Privileged session recording","'Privileged session isolation' AND 'Privileged session recording'"],a:[3],e:"PSM = proxy isolation (credentials never reach the user) + full session recording for audit."},
 {n:80,t:T.V,y:"mc",q:"An SMTP integration is critical for monitoring Vault activity and facilitating workflow processes, such as Dual Control.",o:["True","False"],a:[0],e:"TRUE — the ENE sends email notifications (requests, confirmations, alerts, system events) via SMTP, powering Dual Control workflows."},
 {n:81,t:T.S,y:"mc",q:"CyberArk recommends implementing object level access control on all Safes.",o:["True","False"],a:[1],e:"FALSE — OLAC impacts Vault performance; use it only where granular per-object permissions are truly needed (e.g. one vendor, one password)."},
 {n:82,t:T.A,y:"mc",q:"Which of the following logs contains information about errors related to PTA?",o:["ITAlog.log","diamond.log","pm_error.log","WebApplication.log"],a:[1],e:"diamond.log (in /opt/tomcat/logs on the PTA machine) is PTA's main log — events, alerts, and errors."},
-{n:83,t:T.P,y:"mc",q:"An auditor initiates a live monitoring session to the PSM server to view an ongoing session. Which user is used for the auditor's RDP connection to the PSM server?",o:["PSMAdminConnect","Shadowuser","PSMConnect","Credentials stored in the Vault for the target machine"],a:[0],e:"Live monitoring/termination by auditors uses PSMAdminConnect. End users connecting through PSM use PSMConnect."},
+{n:83,t:T.P,y:"mc",q:"An auditor initiates a live monitoring session to the PSM server to view an ongoing session. Which user is used for the auditor's RDP connection to the PSM server?",o:["PSMAdminConnect","Shadowuser","PSMConnect","Credentials stored in the Vault for the target machine"],a:[0],e:"Live monitoring / termination by auditors uses PSMAdminConnect. End users connecting through PSM use PSMConnect. Same idea as Q110.",r:["CyberArk Docs — PSMConnect and PSMAdminConnect users","https://docs.cyberark.com/PAS/13.2/en/Content/PAS%20INST/Optional-Moving-the-PSMConnec-and-PSMAdminConnect-users-to-your-Domain.htm"]},
 {n:84,t:T.V,y:"multi",q:"Which keys are required to be present in order to start the PrivateArk Server service?",o:["Recovery public key","Recovery private key","Server key","Safe key"],a:[0,2],e:"Server key (opens the Vault) + recovery PUBLIC key. The recovery PRIVATE key is only for disaster recovery (Master user) and should stay locked away."},
 {n:85,t:T.P,y:"mc",q:"Which of the following PSM solutions support live monitoring of active sessions?",o:["PSM (via the Connect button in PVWA)","PSM for Windows (previously RDP Proxy)","PSM for SSH (previously PSM-SSH Proxy)","All of the above"],a:[3],e:"All PSM flavors support live monitoring, suspend and terminate of active sessions by authorized users."},
 {n:86,t:T.V,y:"mc",q:"Within the Vault, each password is encrypted by:",o:["the server key","the recovery public key","the recovery private key","its own unique key"],a:[3],e:"Layered encryption: each password → its own unique key → safe key → server key → recovery public key."},
@@ -198,7 +204,7 @@ const QUESTIONS=[
 {n:92,t:T.S,y:"mc",q:"Which combination of safe member permissions will allow end users to log in to a remote machine transparently but NOT show or copy the password?",o:["Use Accounts, Retrieve Accounts, List Accounts","Use Accounts, List Accounts","Use Accounts","List Accounts, Retrieve Accounts"],a:[1],e:"Use (connect via PSM) + List (see the account). Retrieve is what enables show/copy — leave it out."},
 {n:93,t:T.C,y:"mc",q:"A logon account can be specified in the platform settings.",o:["True","False"],a:[0],e:"TRUE — a default logon account can be set at platform level (or per account in the CPM pane of Account Details)."},
 {n:94,t:T.A,y:"mc",q:"Which type of automatic remediation can be performed by the PTA in case of a suspected credential theft security event?",o:["Password change","Password reconciliation","Session suspension","Session termination"],a:[0],e:"Suspected credential theft (and OverPass-the-Hash) → PTA rotates/changes the credential via the CPM."},
-{n:95,t:T.V,y:"mc",q:"dbparm.ini is the main configuration file for the Vault.",o:["True","False"],a:[1],e:"⚠ Keyed FALSE, yet DBParm.ini IS the main Vault configuration file (see Q91). Almost certainly an answer-key error — for understanding, remember: DBParm.ini = main Vault config."},
+{n:95,t:T.V,y:"mc",q:"dbparm.ini is the main configuration file for the Vault.",o:["True","False"],a:[0],e:"TRUE — DBParm.ini (in Server\\Conf) is the Vault's main configuration file: it holds the core Vault/database parameters (Main, Backup, Communication, TLS, Debug, LDAP, etc.). tsparm.ini and PARAgent.ini are secondary. (Q91's FALSE is about tsparm.ini, which is NOT the main file.) ✎ Corrected from FALSE.",r:["CyberArk Docs — DBParm.ini","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasref/dbparm.ini.htm"]},
 {n:96,t:T.P,y:"mc",q:"A user successfully conducted a short PSM session and logged off, but cannot access the Monitoring tab to view the recordings. What is the issue?",o:["The user must log in as PSMAdminConnect","The PSM service is not running","The user is not a member of the PVWAMonitor group","The user is not a member of the Auditors group"],a:[3],e:"Viewing recordings requires Auditors membership (or permissions on the relevant account + recording safes)."},
 {n:97,t:T.D,y:"mc",q:"Which of the following components can be used to create a tape backup of the Vault?",o:["Disaster Recovery","Distributed Vaults","Replicate","High Availability"],a:[2],e:"PAReplicate exports the encrypted safes + metadata outside the Vault so a backup system can copy them to tape."},
 {n:98,t:T.V,y:"multi",q:"Which are secure options for storing the contents of the Operator CD, while still allowing the contents to be accessible upon a planned Vault restart? (Choose three)",o:["Store the CD in a physical safe and mount it for Vault maintenance","Copy the entire contents of the CD to the system Safe on the Vault","Copy the entire contents of the CD to a folder on the Vault server secured with NTFS permissions","Store the server key in an HSM and copy the rest of the keys to a folder on the Vault server secured with NTFS permissions"],a:[0,1,3],e:"Physical safe, system Safe, or HSM-for-server-key are secure. Plain NTFS folder for ALL keys (option C) is NOT considered secure."},
@@ -207,13 +213,13 @@ const QUESTIONS=[
 {n:101,t:T.C,y:"mc",q:"What is the purpose of the password change process?",o:["To test that CyberArk is storing accurate credentials for accounts","To change the password of an account according to organizationally defined password rules","To allow CyberArk to manage unknown or lost credentials","To generate a new complex password"],a:[1],e:"Change = rotate per policy rules. Verify = test accuracy; Reconcile = recover unknown/out-of-sync credentials."},
 {n:102,t:T.V,y:"mc",q:"What is the purpose of the CyberArk Event Notification Engine service?",o:["It sends email messages from the CPM","It sends email messages from the Vault","It processes audit report messages","It makes Vault data available to components"],a:[1],e:"ENE runs on the Vault server and sends automatic email notifications about PAS activities to predefined users."},
 {n:103,t:T.A,y:"mc",q:"PTA can automatically suspend sessions if suspicious activities are detected in a privileged session, but only if the session is made via the CyberArk PSM.",o:["True","False — PTA can suspend sessions whether the session is made via the PSM or not"],a:[1],e:"Keyed FALSE — PTA can suspend sessions regardless of connection method (PSM, PVWA, direct, SSH, RDP…)."},
-{n:104,t:T.D,y:"mc",q:"Which service should NOT be running on the DR Vault when the primary Production Vault is up?",o:["PrivateArk Database","PrivateArk Server","CyberArk Vault Disaster Recovery (DR) service","CyberArk Logical Container"],a:[2],e:"⚠ Keyed C, but that conflicts with Q138 (DR service = Running, PrivateArk SERVER = Stopped during replication) and with docs. Understand: on a standby DR Vault the PrivateArk Server is stopped and the DR service runs."},
+{n:104,t:T.D,y:"mc",q:"Which service should NOT be running on the DR Vault when the primary Production Vault is up?",o:["PrivateArk Database","PrivateArk Server","CyberArk Vault Disaster Recovery (DR) service","CyberArk Logical Container"],a:[1],e:"The PrivateArk Server service is STOPPED on a standby DR Vault (it only starts on failover). During normal replication the CyberArk Vault Disaster Recovery service RUNS (it pulls data from the primary) and the PrivateArk Database runs. Matches the service states in Q138. ✎ Corrected from the DR service option.",r:["CyberArk Docs — Running a DR Exercise (stop PrivateArk Server; DR service replicates)","https://community.cyberark.com/s/article/Running-a-Disaster-Recovery-Exercise-for-CyberArk-PAM-A-Comprehensive-Guide"]},
 {n:105,t:T.U,y:"mc",q:"Which user is automatically added to all Safes and cannot be removed?",o:["Auditor","Administrator","Master","Operator"],a:[2],e:"The Master user is a member of every safe with full permissions and cannot be removed or modified."},
 {n:106,t:T.V,y:"mc",q:"What is the purpose of the PrivateArk Database service?",o:["Communicates with components","Sends email alerts from the Vault","Executes password changes","Maintains Vault metadata"],a:[3],e:"PrivateArk Database = Vault metadata (safes, accounts, users, policies, audit records). PrivateArk Server = talks to components; ENE = email; CPM = password changes."},
 {n:107,t:T.V,y:"mc",q:"A user gets 'ITATS006E Station is suspended for User jsmith' when signing into the PVWA. Which utility would a Vault administrator use to correct this?",o:["createcredfile.exe","cavaultmanager.exe","PrivateArk","PVWA"],a:[2],e:"Too many bad logins → suspended station. Fix in the PrivateArk client: activate the suspended user/Trusted Net Area."},
 {n:108,t:T.V,y:"mc",q:"What is the purpose of the PrivateArk Server service?",o:["Executes password changes","Maintains Vault metadata","Makes Vault data accessible to components","Sends email alerts from the Vault"],a:[2],e:"PrivateArk Server runs the Vault and serves requests from PVWA/CPM/PSM/PTA — it makes Vault data accessible to components."},
 {n:109,t:T.V,y:"mc",q:"Select the best practice for storing the Master CD.",o:["Copy the files to the Vault server and discard the CD","Copy the contents of the CD to an HSM and discard the CD","Store the CD in a secure location, such as a physical safe","Store the CD in a physical safe AND copy the contents to an NTFS-secured folder on the Vault"],a:[2],e:"Master CD (server key + recovery keys) → physical safe, full stop. No copies on the Vault; HSM can't hold the recovery keys."},
-{n:110,t:T.P,y:"mc",q:"An auditor needs to log in to the PSM in order to live monitor an active session. Which user ID is used to establish the RDP connection to the PSM server?",o:["PSMConnect","PSMMaster","PSMGwUser","PSMAdminConnect"],a:[0],e:"⚠ Keyed PSMConnect here, but Q83 (and CyberArk docs) say live monitoring uses PSMAdminConnect. Rule of thumb: end users → PSMConnect; auditors monitoring → PSMAdminConnect. Know both keyed answers."},
+{n:110,t:T.P,y:"mc",q:"An auditor needs to log in to the PSM in order to live monitor an active session. Which user ID is used to establish the RDP connection to the PSM server?",o:["PSMConnect","PSMMaster","PSMGwUser","PSMAdminConnect"],a:[3],e:"PSMAdminConnect — the admin user PSM uses for live monitoring / remote-control of active sessions (added to the RDP-Tcp remote-control permissions). Regular end-user sessions connect as PSMConnect. Same as Q83. ✎ Corrected from PSMConnect.",r:["CyberArk Docs — PSMConnect and PSMAdminConnect users","https://docs.cyberark.com/PAS/13.2/en/Content/PAS%20INST/Optional-Moving-the-PSMConnec-and-PSMAdminConnect-users-to-your-Domain.htm"]},
 {n:111,t:T.P,y:"mc",q:"Which CyberArk group does a user need to be part of to view recordings or live monitor sessions?",o:["Auditors","Vault Admin","DR Users","Operators"],a:[0],e:"Auditors group (or explicit permissions on the account + recording safes)."},
 {n:112,t:T.D,y:"order",q:"Arrange the steps to restore a Vault using PARestore from a backup in the correct sequence.",o:["Set BackupFilesDeletion=No","Run: PARestore vault.ini operator /FullVaultRestore","Run: CAVaultManager RecoverBackupFiles","Run: CAVaultManager RestoreDB","Set BackupFilesDeletion=Yes,24,1,5,7d"],a:[],e:"Disable backup-file deletion → PARestore full restore → RecoverBackupFiles → RestoreDB → re-enable deletion schedule."},
 {n:113,t:T.P,y:"mc",q:"To ensure all sessions are being recorded, an administrator edits the Master Policy. Which configuration is correct?",o:["Require privileged session monitoring and isolation = inactive; Record and save session activity = active","Both inactive","Require privileged session monitoring and isolation = active; Record and save session activity = active","Monitoring/isolation = active; Record and save = inactive"],a:[2],e:"Both rules active: sessions are isolated/monitored AND recorded/saved."},
@@ -223,7 +229,7 @@ const QUESTIONS=[
 {n:118,t:T.V,y:"mc",q:"You are logging into CyberArk as the Master user to recover an orphaned safe. Which items are required to log in as Master?",o:["Master CD, Master Password, console access to the Vault server, PrivateArk Client","Operator CD, Master Password, console access to the PVWA server, PVWA access","Operator CD, Master Password, console access to the Vault server, Recover.exe","Master CD, Master Password, console access to the PVWA server, Recover.exe"],a:[0],e:"Master login = Master CD (RecPrv.key) + Master password + console on the VAULT server + PrivateArk Client. Master can only log in from the Vault machine."},
 {n:119,t:T.C,y:"mc",q:"Your organization requires all passwords be rotated every 90 days. Where can you set this requirement?",o:["Master Policy","Safe Templates","PVWAConfig.xml","Platform Configuration"],a:[3],e:"Keyed: Platform Configuration — the platform's password change interval (e.g. 90 days) drives CPM rotation for its accounts."},
 {n:120,t:T.A,y:"mc",q:"To enable the automatic response 'Add to Pending' in PTA when unmanaged credentials are found, what are the minimum permissions required by PTAUser on the PasswordManager_pending safe?",o:["List Accounts, View Safe members, Add accounts (incl. update properties), Update Account content, Update Account properties","List Accounts, Add accounts, Delete Accounts, Manage Safe","Add accounts, Update Account content, Update Account properties, View Audit","View Accounts, Update Account content, Update Account properties, Access Safe without confirmation, Manage Safe, View Audit"],a:[0],e:"PTAUser needs: List Accounts, View Safe members, Add accounts (incl. update properties), Update Account content, Update Account properties on PasswordManager_pending."},
-{n:121,t:T.S,y:"mc",q:"You have been asked to turn off the time access restrictions for a safe. Where is this setting found?",o:["PrivateArk","RestAPI","Password Vault Web Access (PVWA)","Vault"],a:[0],e:"Safe time-access restrictions live in Safe Properties in the PrivateArk client. ⚠ Q231 keys 'PVWA' for the same question — docs support PrivateArk; know both keyed answers."},
+{n:121,t:T.S,y:"mc",q:"You have been asked to turn off the time access restrictions for a safe. Where is this setting found?",o:["PrivateArk","RestAPI","Password Vault Web Access (PVWA)","Vault"],a:[0],e:"PrivateArk Client — the safe's access hours are on the Restrictions tab of Safe Properties (All Hours vs a From–To window). ⚠ Note: Q231 in this bank keys 'PVWA' for an identically-worded question; the PrivateArk Client is the documented location.",r:["CyberArk Docs — Manage Safes in PrivateArk (Safe Properties → Restrictions)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/safes-privateark-management.htm"]},
 {n:122,t:T.O,y:"mc",q:"What is the configuration file used by the CPM scanner when scanning UNIX/Linux devices?",o:["UnixPrompts.ini","plink.exe","dbparm.ini","PVConfig.xml"],a:[0],e:"UnixPrompts.ini defines prompts/paths for the CPM scanner on UNIX (login/sudo prompts, passwd/shadow/sudoers paths)."},
 {n:123,t:T.M,y:"mc",q:"Shared accounts whose passwords end users must use — the owner wants to track WHO was using an account at any given moment. Which configuration do you recommend?",o:["Configure one-time passwords for the platform in the Master Policy","Configure shared account mode on the safe","Configure BOTH one-time passwords and exclusive access for the platform in the Master Policy","Configure object level access control on the safe"],a:[2],e:"OTP + Exclusive together: one user at a time (accountability) and a fresh password per checkout."},
 {n:124,t:T.M,y:"mc",q:"In your organization the 'click to connect' button is not active by default. How can this feature be activated?",o:["Policies > Master Policy > Allow EPV transparent connections > Inactive","Policies > Master Policy > Session Management > Require privileged session monitoring and isolation > Add Exception","Policies > Master Policy > Allow EPV transparent connections > Active","Policies > Master Policy > Password Management"],a:[2],e:"'Allow EPV transparent connections' = Active enables the Connect button (one-click PSM connections)."},
@@ -343,14 +349,29 @@ const QUESTIONS=[
 {n:239,t:T.O,y:"mc",q:"Which change could CyberArk make to the REST API that could cause existing scripts to fail?",o:["Adding optional parameters in the request","Adding additional REST methods","Removing parameters","Returning additional values in the response"],a:[2],e:"Removing parameters breaks scripts that depend on them; additions are backward-compatible."},
 ];
 const LETTERS="ABCDEFGHIJ";
-const LS="pamdef_v1";
-let S={};try{S=JSON.parse(localStorage.getItem(LS)||"{}")}catch(e){}
+const LSKEY="pamdef_v1";
+let S={};try{S=JSON.parse(localStorage.getItem(LSKEY)||"{}")}catch(e){}
 S.stats=S.stats||{};
 S.sets=S.sets||{cleared:{},best:{},cur:0};
-const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+S.learn=S.learn||{done:{}};
+const save=()=>{try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){}};
 const stat=n=>S.stats[n]||{box:0,seen:0,c:0,w:0};
 function setStat(n,ok){const s=stat(n);s.seen++;if(ok){s.c++;s.box=Math.min(3,Math.max(s.box,1)+1)}else{s.w++;s.box=1}S.stats[n]=s;save();pushCloud()}
 const byN={};QUESTIONS.forEach(q=>byN[q.n]=q);
+const REFT={
+ [T.S]:["CyberArk Docs — Safes & Safe members","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/safes-concept.htm"],
+ [T.M]:["CyberArk Docs — Account check-out/in & the Master Policy","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/accounts-check-out-and-check-in.htm"],
+ [T.C]:["CyberArk Docs — Automatic account management (CPM & platforms)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/configuring-accounts-for-automatic-management.htm"],
+ [T.P]:["CyberArk Docs — Privileged Session Manager","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/configuring-live-session-monitoring.htm"],
+ [T.A]:["CyberArk Docs — What detections does PTA report?","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pta/what-does-pta-detect.htm"],
+ [T.V]:["CyberArk Docs — DBParm.ini & Vault server files","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasref/dbparm.ini.htm"],
+ [T.D]:["CyberArk Docs — Disaster Recovery","https://community.cyberark.com/s/article/Running-a-Disaster-Recovery-Exercise-for-CyberArk-PAM-A-Comprehensive-Guide"],
+ [T.U]:["CyberArk Docs — Manage users, groups & LDAP","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/users-groups-managing-overview.htm"],
+ [T.O]:["CyberArk Docs — Onboard accounts / Pending accounts","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/pending-accounts-modernui.htm"],
+ [T.R]:["CyberArk Docs — Manage reports in the PVWA","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/reports-manage-in-pvwa.htm"],
+};
+function qref(q){return q.r||REFT[q.t]||null}
+function refHtml(q){const r=qref(q);return r?`<div class="ref">📖 <a href="${esc(r[1])}" target="_blank" rel="noopener noreferrer">${esc(r[0])}</a></div>`:""}
 const SETSIZE=65;
 const SETS=[];for(let i=0;i<QUESTIONS.length;i+=SETSIZE)SETS.push(QUESTIONS.slice(i,i+SETSIZE));
 const TOPICS=Object.values(T);
@@ -393,6 +414,7 @@ function home(){
     </div>
     <div class="bar"><i style="width:${pct}%"></i></div>
   </div>
+  <button class="mode" style="width:100%;border-color:var(--ac);background:linear-gradient(180deg,#1a2242,#151c30)" onclick="learnMenu()"><span class="ic">🎓</span><b>Learn CyberArk — Interactive Course ${S.learn&&S.learn.done&&S.learn.done.l1?"<span style='color:var(--ok);font-size:13px'>· Lesson 1 ✓</span>":"<span style='color:var(--warn);font-size:13px'>· New</span>"}</b><small>The only hands-on CyberArk course: you learn by doing — sort, sequence, teach it back, and recall. No lectures. Start with Lesson 1: Meet the PAM components.</small></button>
   <div class="grid">
     <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
     <button class="mode" onclick="startSmart()"><span class="ic">🧠</span><b>Smart Review</b><small>20 questions · drills your misses & unseen first (spaced repetition)</small></button>
@@ -403,7 +425,7 @@ function home(){
   </div>
   <div class="card"><h2>Topics</h2>${topicRows}</div>
   <div style="text-align:center;margin-top:8px"><a class="reset" onclick="resetAll()">Reset progress</a></div>
-  <div class="foot">Community study tool · Not affiliated with or endorsed by CyberArk</div>`;
+  <div class="foot">Built by M. Hasan Zafar · Community study tool · Not affiliated with or endorsed by CyberArk</div>`;
   window.scrollTo(0,0);
 }
 function resetAll(){
@@ -547,6 +569,7 @@ function updateTimer(){
 function renderQ(){
   const q=sess.qs[sess.i];
   sess.answered=false;sess.sel=new Set();sess.seq=[];
+  sess.cursor=(q.y==="mc"||q.y==="multi")?0:-1;
   let body="";
   if(q.y==="mc"||q.y==="multi"){
     body=q.o.map((op,i)=>`<button class="opt" id="opt${i}" onclick="pickOpt(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(op)}</button>`).join("");
@@ -578,8 +601,10 @@ function renderQ(){
     <div class="rowbtns">
       ${needSubmit?`<button class="btn" id="submitBtn" onclick="submitA()" ${q.y==="mc"?"disabled":""}>${sess.defer?"Next →":"Check answer"}</button>`:""}
     </div>
+    ${(q.y==="mc"||q.y==="multi")?`<div class="kbhint"><kbd>↑</kbd> <kbd>↓</kbd> move · <kbd>space</kbd> select · <kbd>enter</kbd> ${(q.y==="multi"||sess.defer)?"submit":"next"} · <kbd>1</kbd>–<kbd>${q.o.length}</kbd> jump</div>`:""}
   </div>`;
   if(q.y==="order")refreshOrder();
+  if(q.y==="mc"||q.y==="multi")updateCursor();
   if(sess.deadline)updateTimer();
   window.scrollTo(0,0);
 }
@@ -592,17 +617,25 @@ function refreshOrder(){
 }
 function place(i){if(sess.answered)return;sess.seq.push(i);refreshOrder()}
 function unplace(k){if(sess.answered)return;sess.seq.splice(k,1);refreshOrder()}
+function updateCursor(){
+  const q=sess&&sess.qs[sess.i];
+  if(!q||(q.y!=="mc"&&q.y!=="multi"))return;
+  q.o.forEach((_,i)=>{const el=document.getElementById("opt"+i);if(el)el.classList.toggle("cur",i===sess.cursor&&!sess.answered)});
+}
 function pickOpt(i){
   if(sess.answered)return;
   const q=sess.qs[sess.i];
+  sess.cursor=i;
   if(q.y==="mc"){
     sess.sel=new Set([i]);
     if(!sess.defer){submitA();return}
     q.o.forEach((_,j)=>document.getElementById("opt"+j).classList.toggle("sel",j===i));
+    updateCursor();
     const b=document.getElementById("submitBtn");if(b)b.disabled=false;
   }else{
     if(sess.sel.has(i))sess.sel.delete(i);else sess.sel.add(i);
     document.getElementById("opt"+i).classList.toggle("sel",sess.sel.has(i));
+    updateCursor();
     const b=document.getElementById("submitBtn");if(b)b.disabled=sess.sel.size===0;
   }
 }
@@ -671,6 +704,7 @@ function showFeedback(q,ok){
     <div class="verdict ${ok?"g":"b"}">${ok?"✓ Correct":"✗ Incorrect"}</div>
     <div class="ans"><b>Answer:</b> <span style="white-space:pre-wrap">${esc(answerText(q))}</span></div>
     <div class="exp">${fmtExp(q.e)}</div>
+    ${refHtml(q)}
     ${setNote}
   </div>`;
   const b=document.getElementById("submitBtn");
@@ -710,7 +744,7 @@ function finish(){
   const perTopic={};
   res.forEach(r=>{const q=byN[r.n];perTopic[q.t]=perTopic[q.t]||{c:0,t:0};perTopic[q.t].t++;if(r.ok)perTopic[q.t].c++});
   const topicHtml=Object.entries(perTopic).map(([t,v])=>`<div class="trow"><div class="tname"><b>${esc(t)}</b><div class="bar" style="margin-top:5px"><i style="width:${Math.round(100*v.c/v.t)}%"></i></div></div><span class="small">${v.c}/${v.t}</span></div>`).join("");
-  const missedHtml=missed.map(n=>{const q=byN[n];return`<div class="card"><div class="qmeta"><span class="tag">Q${q.n} · ${esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div></div>`}).join("");
+  const missedHtml=missed.map(n=>{const q=byN[n];return`<div class="card"><div class="qmeta"><span class="tag">Q${q.n} · ${esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>`}).join("");
   sess.tick=null;const missedCopy=missed.slice();sess=null;
   app.innerHTML=`
   <div class="card" style="text-align:center">
@@ -741,7 +775,7 @@ function renderBrowse(){
     return`<div class="card bcard" onclick="const r=this.querySelector('.rev');r.style.display=r.style.display==='block'?'none':'block'">
       <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span></div>
       <div style="font-weight:600;white-space:pre-wrap">${esc(q.q)}</div>
-      <div class="rev" style="display:none"><div class="a" style="white-space:pre-wrap">✔ ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div></div>
+      <div class="rev" style="display:none"><div class="a" style="white-space:pre-wrap">✔ ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>
     </div>`;
   }).join("");
   app.innerHTML=`
@@ -754,9 +788,204 @@ function renderBrowse(){
   </div>${cards}`;
   window.scrollTo(0,0);
 }
+/* ================= Learn (interactive course) ================= */
+const CURRICULUM=[
+ {u:"Unit 1 · Foundations",lessons:[
+   {id:"l1",t:"Meet the PAM components",d:"The 5 pieces that make CyberArk work — and how they talk.",ready:true},
+   {id:"l2",t:"Inside the Vault",d:"Encryption layers, keys, and why the Vault is the source of truth.",ready:false},
+   {id:"l3",t:"Safes & permissions",d:"Who can see what, and the cumulative-permissions rule.",ready:false},
+ ]},
+ {u:"Unit 2 · Password management (CPM)",lessons:[
+   {id:"l4",t:"How the CPM rotates a password",ready:false},
+   {id:"l5",t:"Logon & reconcile accounts",ready:false},
+   {id:"l6",t:"Platforms vs the Master Policy",ready:false},
+ ]},
+ {u:"Unit 3 · Privileged sessions (PSM)",lessons:[
+   {id:"l7",t:"Isolation & recording",ready:false},
+   {id:"l8",t:"Connect without exposing the password",ready:false},
+ ]},
+ {u:"Unit 4 · Access workflows",lessons:[
+   {id:"l9",t:"Dual control & exclusive access",ready:false},
+   {id:"l10",t:"One-time passwords",ready:false},
+ ]},
+ {u:"Unit 5 · Threat analytics (PTA)",lessons:[
+   {id:"l11",t:"Detecting attacks (Golden Ticket & friends)",ready:false},
+   {id:"l12",t:"Automatic remediation",ready:false},
+ ]},
+ {u:"Unit 6 · Resilience: Backup, DR & HA",lessons:[
+   {id:"l13",t:"Keys & recovery",ready:false},
+   {id:"l14",t:"Disaster recovery failover",ready:false},
+ ]},
+ {u:"Unit 7 · Onboarding & discovery",lessons:[
+   {id:"l15",t:"Finding privileged accounts",ready:false},
+   {id:"l16",t:"Onboarding at scale",ready:false},
+ ]},
+ {u:"Unit 8 · Exam mastery",lessons:[
+   {id:"l17",t:"Traps, look-alikes & timing",ready:false},
+ ]},
+];
+function learnMenu(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  const done=(S.learn&&S.learn.done)||{};
+  const units=CURRICULUM.map(u=>{
+    const rows=u.lessons.map(l=>{
+      if(l.ready){
+        const d=done[l.id];
+        return `<div class="trow"><div class="tname"><b>${esc(l.t)}</b>${l.d?` <span class="small">· ${esc(l.d)}</span>`:""}${d?' <span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ done</span>':''}</div><button class="tbtn" onclick="startLesson('${l.id}')">${d?'Replay':'Start'}</button></div>`;
+      }
+      return `<div class="trow" style="opacity:.5"><div class="tname"><b>${esc(l.t)}</b>${l.d?` <span class="small">· ${esc(l.d)}</span>`:""}</div><span class="tag">🔒 Coming soon</span></div>`;
+    }).join("");
+    return `<div class="card"><h2>${esc(u.u)}</h2>${rows}</div>`;
+  }).join("");
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">🎓 CyberArk PAM — Course</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">A hands-on course — you <b>learn by doing</b>: sort components, trace how they work, teach concepts to a teammate, and recall from memory. That combination (retrieval practice + building a mental model + the "teach to learn" effect) is what makes it stick, far better than reading. New units unlock over time.</div>
+  </div>
+  ${units}
+  <div class="foot">Course by M. Hasan Zafar · more lessons coming soon</div>`;
+  window.scrollTo(0,0);
+}
+function startLesson(id){ if(id==="l1")startLesson1(); }
+
+// ---- Lesson 1: Meet the PAM components ----
+const L1STEPS=[
+ {k:"intro",h:"The 5 building blocks",p:[
+   "CyberArk PAM is really just <b>five components</b> working together to keep privileged passwords safe.",
+   "You won't read a lecture. You'll <b>sort them, trace how they talk, teach them to a new teammate, and recall them</b> — because doing, not reading, is what makes knowledge stick.",
+   "About 5 minutes. Let's go."]},
+ {k:"mc",tag:"Warm-up",q:"A company keeps 4,000 admin passwords in a shared spreadsheet. What's the single biggest problem?",
+   o:["The file could get large and slow","Anyone with the file has every password, forever, with no record of who used what","Excel isn't meant for IT teams","The passwords are hard to type"],a:1,
+   e:"That's the whole reason PAM exists: privileged secrets need to be encrypted, access-controlled, rotated, and audited. A spreadsheet gives you none of that.",okw:"Exactly"},
+ {k:"match",q:"Match each CyberArk component to its job.",
+   pairs:[["Digital Vault","Encrypted store — the single source of truth for every secret"],
+          ["PVWA","The web UI where users log in, request access & click to connect"],
+          ["CPM","Automatically changes, verifies & reconciles passwords"],
+          ["PSM","Proxies & records sessions so the password never reaches the user"],
+          ["PTA","Watches for attacks & risky behavior, and can auto-respond"]],
+   e:"These five power almost every exam question: the Vault stores, PVWA is the face, CPM manages passwords, PSM manages sessions, PTA watches for threats."},
+ {k:"order",q:"Trace what happens when a user clicks \"Connect\" on an account. Put the steps in order.",
+   steps:["User logs into the PVWA","User clicks Connect on an account","PVWA hands the request to the PSM","PSM retrieves the credential from the Vault","PSM opens the session to the target and records it"],
+   e:"The user never sees or types the password — the PSM injects it and records everything. That's session isolation, the chief benefit of PSM."},
+ {k:"mc",tag:"Teach it back",lead:"Sam, a new teammate, is watching over your shoulder. Teaching Sam is the fastest way to lock this in.",
+   q:"Sam asks: \"Why not just keep admin passwords in a shared Excel file?\" Pick the best way to teach it:",
+   o:["\"Because Excel gets slow with big files.\"","\"Because a vaulted password is encrypted, rotated automatically, access-controlled, and every use is audited — a spreadsheet gives you none of that.\"","\"Because CyberArk costs money, so we have to use it.\""],a:1,
+   e:"Teaching in plain cause-and-effect — here's what you gain, here's what you'd lose — is exactly how you prove (and cement) that you understand it.",okw:"Great teaching"},
+ {k:"mc",tag:"Teach it back",lead:"Sam is impressed. One more.",
+   q:"Sam asks: \"If the password lives in the Vault, how do I connect to a server without ever seeing it?\"",
+   o:["\"You memorize it fast before it rotates.\"","\"You click Connect — the PSM pulls the password from the Vault and opens the session for you, so it never touches your screen.\"","\"You email an admin and wait for them to type it.\""],a:1,
+   e:"That's session isolation in one sentence. If you can teach it this simply, you own it.",okw:"Nailed it"},
+ {k:"mc",tag:"Recall 1 of 3",q:"Which component records privileged sessions?",o:["CPM","PSM","PTA","PVWA"],a:1,e:"PSM — Privileged Session Manager. It isolates and records sessions."},
+ {k:"mc",tag:"Recall 2 of 3",q:"Which component automatically rotates passwords on target systems?",o:["CPM","PSM","Vault","PTA"],a:0,e:"CPM — Central Policy Manager. Change, verify, reconcile."},
+ {k:"mc",tag:"Recall 3 of 3",q:"Where are all secrets ultimately stored?",o:["On the PVWA server","In the CPM cache","In the Digital Vault","On each target machine"],a:2,e:"The Digital Vault — encrypted, hardened, the single source of truth."},
+ {k:"done"},
+];
+let LS=null;
+function startLesson1(){LS={id:"l1",i:0,answered:false};renderL1();}
+function lShell(body,footer){
+  const n=L1STEPS.length;
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><span class="tag">🎓 Lesson 1 · Meet the PAM components</span><span style="flex:1"></span><span>${Math.min(LS.i+1,n)}/${n}</span><span class="tag" style="cursor:pointer" onclick="learnMenu()">✕ exit</span></div>
+    <div class="bar" style="margin-bottom:14px"><i style="width:${Math.round(100*LS.i/(n-1))}%"></i></div>
+    ${body}
+    <div id="lfb"></div>
+    <div class="rowbtns" id="lfoot">${footer||""}</div>
+  </div>`;
+  const f=document.querySelector('#lfoot .btn');if(f)f.focus();
+  window.scrollTo(0,0);
+}
+function renderL1(){
+  const s=L1STEPS[LS.i];LS.answered=false;LS.seq=null;LS.disp=null;
+  if(s.k==="intro"){
+    lShell(`<h1 style="margin-top:4px">${s.h}</h1>${s.p.map(x=>`<p style="color:#c6cde4;line-height:1.6">${x}</p>`).join("")}`,
+      `<button class="btn" onclick="lNext()">Start lesson →</button>`);
+  }else if(s.k==="mc"){
+    const lead=s.lead?`<div class="hint" style="color:var(--mut)">${esc(s.lead)}</div>`:"";
+    const tag=s.tag?`<span class="tag" style="margin-bottom:8px;display:inline-block">${esc(s.tag)}</span>`:"";
+    const opts=s.o.map((o,i)=>`<button class="opt" id="lo${i}" onclick="lPick(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(o)}</button>`).join("");
+    lShell(`${tag}${lead}<div class="qtext">${esc(s.q)}</div>${opts}<div class="kbhint"><kbd>1</kbd>–<kbd>${s.o.length}</kbd> pick · <kbd>enter</kbd> continue</div>`,"");
+  }else if(s.k==="match"){
+    const rights=shuffle([...new Set(s.pairs.map(p=>p[1]))]);
+    lShell(`<div class="qtext">${esc(s.q)}</div><div class="hint">Pick the right job for each. Then Check.</div>`+
+      s.pairs.map((p,i)=>`<div class="mrow"><div class="ml">${esc(p[0])}</div><select id="lm${i}"><option value="">— choose —</option>${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("")}</select></div>`).join(""),
+      `<button class="btn" onclick="lCheckMatch()">Check →</button>`);
+  }else if(s.k==="order"){
+    LS.disp=shuffle(s.steps.map((_,i)=>i));LS.seq=[];
+    lShell(`<div class="qtext">${esc(s.q)}</div><div class="hint">Tap the steps in order. Tap a placed step to remove it.</div><div class="seqzone" id="lseq"></div><div id="lbank"></div>`,
+      `<button class="btn" id="lorderbtn" onclick="lCheckOrder()" disabled>Check →</button>`);
+    lRefreshOrder();
+  }else if(s.k==="done"){
+    S.learn.done[LS.id]=true;save();
+    lShell(`<div class="big" style="color:var(--ok);text-align:center">🎉</div>
+      <h1 style="text-align:center;margin:4px 0">Lesson 1 complete</h1>
+      <div class="sub" style="text-align:center">You can name the five components, trace a live connection, and teach both to someone else.</div>
+      <div class="card" style="background:var(--card2)"><b>Why this stuck</b><div class="small" style="margin-top:6px;line-height:1.6">You didn't just read — you <b>sorted</b> (built a model), <b>sequenced</b> (cause & effect), <b>taught it back</b> (the protégé effect), and <b>recalled</b> from memory (retrieval practice). Those four are the highest-leverage ways the brain forms durable memory.</div></div>
+      <div class="card" style="background:var(--card2)"><b>Up next</b> <span class="tag">🔒 Coming soon</span><div class="small" style="margin-top:6px">Lesson 2 · Inside the Vault — encryption layers, keys, and recovery. Keep the momentum with practice below.</div></div>`,
+      `<button class="btn" onclick="startQuick()">Practice with a quick quiz →</button><button class="btn ghost" onclick="learnMenu()">Back to course</button>`);
+  }
+}
+function lPick(i){
+  const s=L1STEPS[LS.i];if(LS.answered)return;LS.answered=true;
+  const ok=i===s.a;
+  s.o.forEach((_,j)=>{const el=document.getElementById('lo'+j);el.disabled=true;el.classList.remove('cur');if(j===s.a)el.classList.add('ok');else if(j===i)el.classList.add('bad');});
+  document.getElementById('lfb').innerHTML=`<div class="fb ${ok?'good':'badf'}"><div class="verdict ${ok?'g':'b'}">${ok?'✓ '+(s.okw||'Correct'):'✗ Not quite'}</div><div class="exp">${esc(s.e)}</div></div>`;
+  document.getElementById('lfoot').innerHTML=`<button class="btn" onclick="lNext()">Continue →</button>`;
+  document.querySelector('#lfoot .btn').focus();
+}
+function lCheckMatch(){
+  const s=L1STEPS[LS.i];if(LS.answered)return;
+  for(let i=0;i<s.pairs.length;i++){if(!document.getElementById('lm'+i).value){document.getElementById('lfb').innerHTML='<div class="hint">Choose a job for every component first.</div>';return;}}
+  LS.answered=true;let allok=true;
+  s.pairs.forEach((p,i)=>{const el=document.getElementById('lm'+i);const ok=el.value===p[1];el.disabled=true;el.classList.add(ok?'ok':'bad');if(!ok)allok=false;});
+  document.getElementById('lfb').innerHTML=`<div class="fb ${allok?'good':'badf'}"><div class="verdict ${allok?'g':'b'}">${allok?'✓ All matched':'Here are the correct pairs'}</div><div class="exp">${esc(s.e)}</div>${allok?'':'<div class="small" style="margin-top:8px;line-height:1.7">'+s.pairs.map(p=>'<b>'+esc(p[0])+'</b> → '+esc(p[1])).join('<br>')+'</div>'}</div>`;
+  document.getElementById('lfoot').innerHTML=`<button class="btn" onclick="lNext()">Continue →</button>`;
+  document.querySelector('#lfoot .btn').focus();
+}
+function lRefreshOrder(){
+  const s=L1STEPS[LS.i];
+  const seq=document.getElementById('lseq'),bank=document.getElementById('lbank');
+  seq.innerHTML=LS.seq.length?LS.seq.map((idx,k)=>`<button class="step" onclick="lUnplace(${k})"><span class="num">${k+1}.</span>${esc(s.steps[idx])}</button>`).join(""):'<div class="empty">Your order appears here…</div>';
+  bank.innerHTML=LS.disp.filter(i=>!LS.seq.includes(i)).map(i=>`<button class="step" onclick="lPlace(${i})">${esc(s.steps[i])}</button>`).join("");
+  const b=document.getElementById('lorderbtn');if(b)b.disabled=LS.answered||LS.seq.length!==s.steps.length;
+}
+function lPlace(i){if(LS.answered)return;LS.seq.push(i);lRefreshOrder();}
+function lUnplace(k){if(LS.answered)return;LS.seq.splice(k,1);lRefreshOrder();}
+function lCheckOrder(){
+  const s=L1STEPS[LS.i];if(LS.answered||LS.seq.length!==s.steps.length)return;LS.answered=true;
+  const ok=LS.seq.every((v,k)=>v===k);
+  document.querySelectorAll('#lseq .step,#lbank .step').forEach(el=>el.disabled=true);
+  document.getElementById('lfb').innerHTML=`<div class="fb ${ok?'good':'badf'}"><div class="verdict ${ok?'g':'b'}">${ok?'✓ Correct flow':'Correct order:'}</div>${ok?'':'<div class="small" style="margin-top:6px;line-height:1.7">'+s.steps.map((t,i)=>(i+1)+'. '+esc(t)).join('<br>')+'</div>'}<div class="exp" style="margin-top:8px">${esc(s.e)}</div></div>`;
+  document.getElementById('lfoot').innerHTML=`<button class="btn" onclick="lNext()">Continue →</button>`;
+  document.querySelector('#lfoot .btn').focus();
+}
+function lNext(){LS.i++;renderL1();}
+// lesson keyboard: number keys pick, enter/space advance
+document.addEventListener("keydown",e=>{
+  if(sess||!LS)return;
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+  const s=L1STEPS[LS.i];if(!s)return;
+  if(s.k==="mc"&&!LS.answered&&e.key>="1"&&e.key<="9"){const i=+e.key-1;if(i<s.o.length){lPick(i);}return;}
+  if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){const b=document.querySelector('#lfoot .btn');if(b){e.preventDefault();b.click();}}
+});
+/* ============================================================== */
 document.addEventListener("keydown",e=>{
   if(!sess)return;
-  if(e.key>="1"&&e.key<="9"){const q=sess.qs[sess.i];if((q.y==="mc"||q.y==="multi")&&!sess.answered){const i=+e.key-1;if(i<q.o.length)pickOpt(i)}}
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return; // don't hijack form fields
+  const q=sess.qs[sess.i];
+  const isOpt=q&&(q.y==="mc"||q.y==="multi");
+  if(e.key>="1"&&e.key<="9"){if(isOpt&&!sess.answered){const i=+e.key-1;if(i<q.o.length){sess.cursor=i;pickOpt(i)}}return;}
+  if(isOpt&&!sess.answered&&(e.key==="ArrowDown"||e.key==="ArrowRight")){e.preventDefault();sess.cursor=Math.min(q.o.length-1,(sess.cursor<0?-1:sess.cursor)+1);updateCursor();return;}
+  if(isOpt&&!sess.answered&&(e.key==="ArrowUp"||e.key==="ArrowLeft")){e.preventDefault();sess.cursor=Math.max(0,(sess.cursor<0?0:sess.cursor)-1);updateCursor();return;}
+  if(e.key===" "||e.key==="Spacebar"){
+    if(isOpt&&!sess.answered){
+      e.preventDefault();
+      if(q.y==="mc"&&sess.defer&&sess.sel.has(sess.cursor))submitA();
+      else pickOpt(sess.cursor);
+      return;
+    }
+    const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click();return;}
+  }
   if(e.key==="Enter"){const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click()}}
 });
 /* ---- optional sign-in & cross-device progress sync (Puter.js) ----
