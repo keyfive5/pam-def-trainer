@@ -90,6 +90,26 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .acct:hover{background:#24356b}
 .acct.on{color:var(--ok);border-color:var(--ok)}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+.dcard{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--br);color:var(--tx);padding:12px 14px;border-radius:12px;margin:8px 0;cursor:pointer;font:inherit}
+.dcard:hover{border-color:var(--ac)}
+.dcard.open{border-color:var(--ok)}
+.dcard .dh{display:flex;align-items:center;gap:10px;font-weight:700}
+.dcard .dh .em{font-size:20px}
+.dcard .dw{color:var(--mut);font-weight:400;font-size:13px;margin-left:auto}
+.dcard .dd{margin-top:8px;font-size:14px;color:#c6cde4;line-height:1.55;display:none}
+.dcard.open .dd{display:block}
+.slot{display:flex;align-items:center;gap:10px;border:1px dashed var(--br);border-radius:12px;padding:10px 12px;margin:8px 0;background:#0e1530;min-height:52px}
+.slot.over{border-color:var(--ac);background:#18224a}
+.slot.ok{border-style:solid;border-color:var(--ok)}
+.slot.bad{border-style:solid;border-color:var(--bad)}
+.slot .sl{flex:1;font-size:14px}
+.slotbtn{background:var(--card2);border:1px solid var(--br);color:var(--tx);border-radius:10px;padding:7px 11px;font:inherit;font-size:13px;cursor:pointer;min-width:130px}
+.slotbtn.empty{color:var(--mut)}
+.slotbtn:hover{border-color:var(--ac)}
+.chip2{background:var(--card2);border:1px solid var(--br);color:var(--tx);border-radius:10px;padding:8px 13px;font:inherit;font-size:14px;cursor:grab;margin:4px}
+.chip2:hover{border-color:var(--ac)}
+.chip2.picked{border-color:var(--ac);background:#24356b}
+.chip2.used{opacity:.35;cursor:default}
 .ref{margin-top:10px;font-size:13px}
 .ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
 .ref a:hover{border-bottom-color:var(--ac)}
@@ -180,7 +200,7 @@ const QUESTIONS=[
 {n:68,t:T.S,y:"mc",q:"For a safe with Object Level Access enabled, you can turn off Object Level Access Control when it is no longer needed on the safe.",o:["TRUE","FALSE"],a:[1],e:"FALSE — once OLAC is enabled on a safe it CANNOT be disabled."},
 {n:69,t:T.V,y:"mc",q:"The vault supports Subnet Based Access Control.",o:["TRUE","FALSE"],a:[0],e:"TRUE — access can be restricted by network area/subnet (and firewall rules limiting specific IPs)."},
 {n:70,t:T.O,y:"mc",q:"When creating an onboarding rule, it will be executed upon:",o:["All accounts in the pending accounts list","Any future accounts discovered by a discovery process","Both — all pending accounts AND any future discovered accounts"],a:[2],e:"Onboarding rules apply retroactively to the pending list AND to future discoveries."},
-{n:71,t:T.V,y:"mc",q:"How does the Vault administrator apply a new license file?",o:["Upload license.xml to the system Safe and restart the PrivateArk Server service","Upload license.xml to the system Safe","Upload license.xml to the Vault Internal Safe and restart the PrivateArk Server service","Upload license.xml to the Vault Internal Safe"],a:[1],e:"Store the new license.xml in the root of the SYSTEM safe (via the PrivateArk Client) — the Vault installs it automatically, no service restart required. It's the System safe, not a 'Vault Internal' safe. Consistent with Q76. ✎ Corrected from 'Vault Internal Safe + restart'.",r:["CyberArk Docs — Manage the CyberArk License","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/managing-the-cyberark-license.htm"]},
+{n:71,t:T.V,y:"mc",q:"How does the Vault administrator apply a new license file?",o:["Upload license.xml to the system Safe and restart the PrivateArk Server service","Upload license.xml to the system Safe","Upload license.xml to the Vault Internal Safe and restart the PrivateArk Server service","Upload license.xml to the Vault Internal Safe"],a:[0],e:"The SYSTEM safe (never a 'Vault Internal' safe) + restart the PrivateArk Server service. Two documented routes: copy license.xml into the root of the System safe via the PrivateArk Client, or replace it at OS level in Server\\Conf and restart the service. CyberArk notes the client-only route can hit a database error, so the reliable procedure — and the exam's expected answer — includes the restart. ✎ Corrected to include the restart.",r:["CyberArk Docs / KB — How to install a new CyberArk license on the Vault","https://community.cyberark.com/s/article/00002945"]},
 {n:72,t:T.M,y:"mc",q:"When Dual Control is enabled, a user must first submit a request in the PVWA and receive approval before being able to launch a secure connection via PSM for Windows.",o:["True","False — a user can submit the request after the connection has already been initiated"],a:[0],e:"TRUE — with Dual Control, confirmation from authorized safe owner(s) is required BEFORE the PSM connection can be launched."},
 {n:73,t:T.A,y:"mc",q:"Which of the following PTA detections require the deployment of a Network Sensor or installing the PTA Agent on the domain controller?",o:["Suspected credential theft","Over-Pass-The-Hash","Golden Ticket","Unmanaged privileged access"],a:[2],e:"Golden Ticket (forged Kerberos TGT) detection needs the Network Sensor or PTA Agent on the DC to inspect Kerberos traffic anomalies."},
 {n:74,t:T.P,y:"mc",q:"Via PVWA, a user initiates a PSM connection to a target Linux machine using RemoteApp. When the client machine makes an RDP connection to the PSM server, which user is utilized?",o:["Credentials stored in the Vault for the target machine","Shadowuser","PSMConnect","PSMAdminConnect"],a:[2],e:"End-user sessions connect to the PSM server as PSMConnect. (Auditors live-monitoring use PSMAdminConnect — Q83.)"},
@@ -240,7 +260,7 @@ const QUESTIONS=[
 {n:129,t:T.A,y:"mc",q:"Which PTA sensors are required to detect suspected credential theft?",o:["Logs, Vault Logs","Logs, Network Sensor, Vault Logs","Logs, PSM Logs, CPM Logs","Logs, Network Sensor, EPM"],a:[1],e:"Suspected credential theft needs Logs + Network Sensor + Vault Logs (user connected without first retrieving creds from the Vault)."},
 {n:130,t:T.R,y:"mc",q:"When running a Privileged Accounts Inventory report on a specific safe via the PVWA Reports page, which permissions are required on that safe for complete information?",o:["List Accounts, View Safe Members","Manage Safe Owners","List Accounts, Access Safe without confirmation","Manage Safe, View Audit"],a:[0],e:"List Accounts (see accounts/properties) + View Safe Members (see members/authorizations)."},
 {n:131,t:T.C,y:"mc",q:"Which usage can be added as a service account platform?",o:["Kerberos Tokens","IIS Application Pools","PowerShell Libraries","Loosely Connected Devices"],a:[1],e:"IIS Application Pools is a supported usage/dependency type (service account platform). CPM syncs the app-pool password with the master account."},
-{n:132,t:T.V,y:"match",q:"Match each key to its recommended storage location (per the answer key).",p:[["Recovery Private Key","Vault Server Disk Drive"],["Recovery Public Key","Hardware Security Module"],["Server Key","Physical Safe"],["SSH Keys","Vault"]],a:[],e:"⚠ As per the answer key — treat with caution: docs best practice is Server Key in an HSM and the Master CD (recovery PRIVATE key) in a physical safe (see Q98, Q109, Q118)."},
+{n:132,t:T.V,y:"match",q:"Match each key to its recommended storage location.",p:[["Recovery Private Key","Physical Safe (offline — Master CD)"],["Recovery Public Key","Vault Server Disk Drive"],["Server Key","Hardware Security Module"],["SSH Keys","In the Vault"]],a:[],e:"✎ Corrected. Best practice: the Recovery PRIVATE key (recprv.key, on the Master CD) stays OFFLINE in a physical safe — it's the crown jewel and must never sit on the Vault disk. The Recovery PUBLIC key must be present for the Vault to start, so it lives on the Vault server. The Server Key is best stored as a non-exportable key in an HSM (otherwise removable media locked in a physical safe). Managed SSH keys live in the Vault. Cross-check Q84 / Q98 / Q109 / Q118.",r:["CyberArk Docs — Server keys & HSM key management","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pas%20inst/configuring-hsm-key-management.htm"]},
 {n:133,t:T.D,y:"multi",q:"You need to recover account localadmin02 (server 10.0.123.73) stored in Safe Team1. What do you need to recover and decrypt the object? (Choose three)",o:["Recovery Private Key","Recover.exe","Vault data","Recovery Public Key","Server Key","Master Password"],a:[0,1,2],e:"Recover.exe decrypts a safe's external files using the Recovery PRIVATE key (RecPrv.key from the Master CD) against the Vault data."},
 {n:134,t:T.C,y:"mc",q:"What is the easiest way to duplicate an existing platform?",o:["From PrivateArk, copy/paste the appropriate Policy.ini file, then rename it","From the PVWA platforms page, select a similar existing platform, click Duplicate, then name the new platform","From PrivateArk, copy/paste settings in PVConfiguration.xml and update policyName","From the PVWA platforms page, manually update settings and click 'Save as' instead of Save"],a:[1],e:"PVWA → Platform Management → select platform → Duplicate → rename → customize."},
 {n:135,t:T.P,y:"match",q:"Match the connection component to the corresponding OS/function.",p:[["PSM-SSH","UNIX/Linux machines over SSH"],["PSM-RDP","Windows machines over RDP"],["PSM-WinSCP","UNIX file transfer (upload/download)"],["PSM-SQLPlus","Oracle databases"],["PSM-OS390","IBM mainframes"]],a:[],e:"PSM-SSH→UNIX, PSM-RDP→Windows, PSM-WinSCP→UNIX file transfer, PSM-SQLPlus→Oracle, PSM-OS390→IBM mainframe (TSO/CICS/IMS)."},
@@ -293,7 +313,7 @@ const QUESTIONS=[
 {n:183,t:T.P,y:"order",q:"From the PVWA, arrange the steps to configure a PSM host to use a new HTML5 Gateway in the correct sequence.",o:["Log in to the PVWA with an administrative user","Navigate to Administration > Options","Right-click Privileged Session Management, then select Add Configured PSM Gateway Servers","Right-click Configured PSM Gateway Servers, then Add PSM Gateway Server","Enter a unique ID for the PSM HTML5 Gateway server","Expand the newly created gateway server and enter the configuration details"],a:[],e:"PVWA admin login → Options → add the Configured PSM Gateway Servers section → add a gateway server → unique ID → fill in details."},
 {n:184,t:T.U,y:"mc",q:"What do you need ON THE VAULT to support LDAP over SSL?",o:["CA Certificate(s) used to sign the External Directory certificate","RECPRV.key","A private key for the external directory","Self-signed certificate(s) for the Vault"],a:[0],e:"Import the signing CA cert(s) into the Vault's Windows certificate store to trust the LDAPS connection."},
 {n:185,t:T.S,y:"mc",q:"In addition to 'add accounts' and 'update account contents', which additional safe permission is required to add a single account?",o:["Upload Accounts Properties","Rename Accounts","Update Account Properties","Manage Safe"],a:[2],e:"Adding a single account also needs Update Account Properties (to set the account's properties)."},
-{n:186,t:T.P,y:"mc",q:"Due to storage constraints, you must disable session monitoring and recording for 500 test accounts. How do you accomplish this?",o:["Master Policy > Session Management > add Exceptions to the platform(s) > disable Session Monitoring and Recording policies","Administration > Platform Management > select the platform(s) > disable Session Monitoring and Recording","Policies > Access Control (Safes) > select the safe(s) > disable policies","Administration > Configuration Options > Options > Privilege Session Management > disable policies"],a:[3],e:"⚠ Keyed D, but community most-voted is B (Platform Management — docs-supported). At minimum remember: this is NOT done per-safe."},
+{n:186,t:T.P,y:"mc",q:"Due to storage constraints, you must disable session monitoring and recording for 500 test accounts. How do you accomplish this?",o:["Master Policy > Session Management > add Exceptions to the platform(s) > disable Session Monitoring and Recording policies","Administration > Platform Management > select the platform(s) > disable Session Monitoring and Recording","Policies > Access Control (Safes) > select the safe(s) > disable policies","Administration > Configuration Options > Options > Privilege Session Management > disable policies"],a:[1],e:"✎ Corrected to Platform Management. Session monitoring and recording are disabled per PLATFORM: Administration → Platform Management → select the platform(s) → Edit → UI & Workflows → Privileged Session Management (Add Override Live Sessions Monitoring Settings / Recorder Settings → Enabled = No). Attach the 500 lab accounts to that platform and recording stops for them only. It is never configured per-safe.",r:["CyberArk Docs — Configure video and text recordings (per-platform)","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/configure-recordings-in-psm.htm"]},
 {n:187,t:T.C,y:"mc",q:"What does the MinValidity parameter on a platform policy determine?",o:["Time between a password retrieval and the account becoming eligible for a password change","Timeout for users signed into the PVWA per global settings","Minimum amount of time that Just-in-Time access is valid","Time in minutes before an empty safe is automatically deleted"],a:[0],e:"MinValidity = guaranteed usable window after retrieval before the CPM may change the password (also releases exclusive accounts)."},
 {n:188,t:T.O,y:"multi",q:"Which accounts can be selected for use in the Windows discovery process? (Choose two)",o:["An account stored in the Vault","An account specified by the user","The Vault Administrator","Any user with Auditor membership","The PasswordManager user"],a:[0,1],e:"Discovery can run with a vaulted account OR manually specified credentials."},
 {n:189,t:T.C,y:"mc",q:"What is required to manage loosely connected devices?",o:["PSM for SSH","EPM","PSM","PTA"],a:[1],e:"Endpoint Privilege Manager (EPM) rotates credentials on Windows/macOS devices that aren't always on the enterprise network."},
@@ -304,7 +324,7 @@ const QUESTIONS=[
 {n:194,t:T.V,y:"multi",q:"During an HA node switch you notice an error and the Cluster Vault Manager fails back to the original node. Which logs should you check? (Choose three)",o:["CyberArk Webconsole.log","VaultDB.log","PM_Error.log","ITALog.log","ClusterVault.console.log","logiccontainer.log"],a:[1,2,4],e:"VaultDB.log (database ops), PM_Error.log (password manager errors), ClusterVault.console.log (cluster errors/warnings)."},
 {n:195,t:T.O,y:"multi",q:"What must you specify when configuring a discovery scan for UNIX? (Choose two)",o:["Vault Administrator","CPM Scanner","Root password for each machine","List of machines to scan","Safe for discovered accounts"],a:[1,3],e:"UNIX discovery needs the CPM Scanner + a list (CSV) of machines to scan."},
 {n:196,t:T.O,y:"mc",q:"You want to create a new onboarding rule. Where do you accomplish this?",o:["PVWA > Reports > Unmanaged Accounts > Rules","PVWA > Options > Platform Management > Onboarding Rules","PrivateArk > Tools > Onboarding Rules","PVWA > Accounts > Onboarding Rules"],a:[3],e:"PVWA → Accounts → Onboarding Rules → Create rule (wizard)."},
-{n:197,t:T.S,y:"multi",q:"You created a new safe and need to ensure the user group cannot see the password but CAN connect through the PSM. Which safe permissions must you grant the group? (Choose two)",o:["List Accounts","Use Accounts","Access Safe without Confirmation","Retrieve Files","Confirm Request"],a:[1,3],e:"⚠ Answer key: B + D. Community most-voted (and docs-consistent, see Q92): A List Accounts + B Use Accounts — no Retrieve so the password can't be shown/copied. Know both."},
+{n:197,t:T.S,y:"multi",q:"You created a new safe and need to ensure the user group cannot see the password but CAN connect through the PSM. Which safe permissions must you grant the group? (Choose two)",o:["List Accounts","Use Accounts","Access Safe without Confirmation","Retrieve Files","Confirm Request"],a:[0,1],e:"✎ Corrected to List Accounts + Use Accounts. 'Use Accounts' lets them click Connect through the PSM; 'List Accounts' lets them see the account in the list. You deliberately withhold Retrieve — that is exactly the permission that reveals/copies the password. Same logic as Q92.",r:["CyberArk Docs — Safe member permissions","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/safes-concept.htm"]},
 {n:198,t:T.P,y:"mc",q:"To change the safe where recordings are kept for a specific platform, which setting must you update in the platform configuration?",o:["SessionRecorderSafe","SessionSafe","RecordingsPath","RecordingLocation"],a:[0],e:"SessionRecorderSafe = the safe storing PSM recordings for that platform (restart PSM / wait ~10 min to apply)."},
 {n:199,t:T.A,y:"mc",q:"If PTA is integrated with a supported SIEM solution, which detection becomes available?",o:["Unmanaged privileged account","Privileged access to the Vault during irregular days","RiskySPN","Exposed credentials"],a:[3],e:"SIEM integration enables 'exposed credentials' detection — connecting with a privileged account without first retrieving it from the Vault."},
 {n:200,t:T.U,y:"mc",q:"When are external vault users and groups synchronized by default?",o:["Once every 24 hours between 1 AM and 5 AM","Once every 24 hours between 7 PM and 12 AM","Every 2 hours","They are not synchronized according to a specific schedule"],a:[0],e:"AutoSyncExternalObjects (DBParm.ini): daily sync with the external directory between 01:00–05:00."},
@@ -356,7 +376,10 @@ S.sets=S.sets||{cleared:{},best:{},cur:0};
 S.learn=S.learn||{done:{}};
 const save=()=>{try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){}};
 const stat=n=>S.stats[n]||{box:0,seen:0,c:0,w:0};
-function setStat(n,ok){const s=stat(n);s.seen++;if(ok){s.c++;s.box=Math.min(3,Math.max(s.box,1)+1)}else{s.w++;s.box=1}S.stats[n]=s;save();pushCloud()}
+function setStat(n,ok){
+  if(typeof n!=="number")return; // generated questions aren't part of the tracked bank
+  const s=stat(n);s.seen++;if(ok){s.c++;s.box=Math.min(3,Math.max(s.box,1)+1)}else{s.w++;s.box=1}S.stats[n]=s;save();pushCloud();
+}
 const byN={};QUESTIONS.forEach(q=>byN[q.n]=q);
 const REFT={
  [T.S]:["CyberArk Docs — Safes & Safe members","https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/safes-concept.htm"],
@@ -418,7 +441,7 @@ function home(){
   <div class="grid">
     <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
     <button class="mode" onclick="startSmart()"><span class="ic">🧠</span><b>Smart Review</b><small>20 questions · drills your misses & unseen first (spaced repetition)</small></button>
-    <button class="mode" onclick="startExam()"><span class="ic">⏱️</span><b>Exam Simulator</b><small>65 random questions · 90-minute timer · graded at the end vs 70% pass mark</small></button>
+    <button class="mode" onclick="examSetup()"><span class="ic">⏱️</span><b>Exam Simulator</b><small>65 questions · 90-minute timer · graded vs the 70% pass mark · options for unlabeled answers and a freshly generated exam</small></button>
     <button class="mode" onclick="browse('All')"><span class="ic">📚</span><b>Browse & Cram</b><small>Flashcard mode — flip through every question with answers & explanations</small></button>
     <button class="mode" onclick="marathonSetup()"><span class="ic">🏁</span><b>Full Marathon</b><small>All ${QUESTIONS.length} questions in the original order · choose your own time limit · instant answers${S.marathon&&S.marathon.results&&S.marathon.results.length<QUESTIONS.length?` · <b style='color:var(--warn)'>resume at Q${S.marathon.results.length+1}</b>`:""}</small></button>
     <button class="mode" onclick="setsMenu()"><span class="ic">🎯</span><b>Sets of ${SETSIZE}</b><small>${SETS.length} ordered blocks · get every question in a block right <b>in a row</b>, then advance to the next — your block is saved, so you never drop back to Q1${setsClearedCount()?` · <b style='color:var(--ok)'>${setsClearedCount()}/${SETS.length} cleared</b>`:""}</small></button>
@@ -436,7 +459,167 @@ function resetAll(){
 }
 function startQuick(){begin({title:"Quick Quiz",pool:QUESTIONS,count:10,defer:false})}
 function startSmart(){begin({title:"Smart Review",pool:QUESTIONS,count:20,defer:false})}
-function startExam(){begin({title:"Exam Simulator",pool:QUESTIONS,count:65,defer:true,random:true})}
+function startExam(){begin({title:"Exam Simulator",pool:QUESTIONS,count:65,defer:true,random:true,nolabel:!!S.examNoLabel})}
+function examSetup(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  const nl=!!S.examNoLabel;
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">⏱️ Exam Simulator</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">65 questions · 90-minute timer · no feedback until the end · graded against the real exam's 70% pass mark.</div>
+    <h2 style="margin-top:16px">Options</h2>
+    <button class="dcard" onclick="toggleNoLabel()" id="nlBtn">
+      <div class="dh"><span class="em">${nl?"☑":"☐"}</span><span>Hide question numbers &amp; answer letters</span><span class="dw">${nl?"ON":"OFF"}</span></div>
+      <div class="dd" style="display:block">Strips "Q123" and the A/B/C/D labels so you can't lean on position or pattern memory — you have to actually read and know it.</div>
+    </button>
+    <h2 style="margin-top:18px">Choose your exam</h2>
+    <div class="rowbtns">
+      <button class="btn" onclick="startExam()">📘 Standard exam · from the question bank</button>
+      <button class="btn ghost" onclick="genExamStart()">✨ Generate a fresh exam</button>
+    </div>
+    <div class="small" style="margin-top:10px">The generated exam writes brand-new questions on the spot from a CyberArk fact model — different every time, and none of them are from the practice bank. Runs entirely on your device (no account, no internet, no cost).</div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+function toggleNoLabel(){S.examNoLabel=!S.examNoLabel;save();examSetup();}
+/* ---- Fresh-exam generator: builds new questions from a fact model ---- */
+const FACTS=[
+ // [topic, subject, does/is, wrong-siblings...]
+ [T.C,"CPM (Central Policy Manager)","changes, verifies and reconciles passwords on target systems",["records privileged sessions","stores all secrets in encrypted form","detects Kerberos attacks","serves the web interface to users"]],
+ [T.P,"PSM (Privileged Session Manager)","isolates and records privileged sessions so the password never reaches the user",["rotates passwords on a schedule","stores the recovery keys","synchronizes LDAP users","generates license reports"]],
+ [T.A,"PTA (Privileged Threat Analytics)","detects attacks and risky behavior and can automatically respond",["encrypts the safes","proxies RDP sessions","uploads passwords in bulk","compiles platform settings"]],
+ [T.V,"the Digital Vault","stores every credential, key and recording, encrypted",["renders the PVWA pages","runs the discovery scans","hosts the HTML5 gateway","executes connection components"]],
+ [T.V,"the PVWA","is the web interface where users log in, request access and click Connect",["changes target passwords directly","stores the server key","analyses Kerberos tickets","records keystrokes on Unix"]],
+ [T.C,"the Interval parameter","controls how often the CPM looks for SYSTEM-initiated work",["controls how often the CPM looks for user-initiated work","sets how many days before expiry a change starts","defines the minimum password validity period","limits which safes a platform applies to"]],
+ [T.C,"the ImmediateInterval parameter","controls how often the CPM looks for USER-initiated work",["controls how often the CPM looks for system-initiated work","sets the password expiration period","defines the verification time window","controls the reconcile schedule"]],
+ [T.C,"HeadStartInterval","tells the CPM to start changing a password a number of days BEFORE it expires",["defines how long a retrieved password stays valid","controls the AIM provider cache","sets how far back audit data is collected","restricts which safes the platform serves"]],
+ [T.C,"MinValidityPeriod","is the minimum number of minutes a retrieved password stays usable before the CPM replaces it",["is the number of days before expiry that a change begins", "is how often the CPM scans for work", "is how long a session recording is retained", "is the maximum number of dual-control approvers"]],
+ [T.C,"AllowedSafes","restricts a platform to accounts stored in specific safes",["restricts which users may log in","lists the safes an auditor can report on","defines the CPM's working hours","names the reconcile account"]],
+ [T.S,"the default behaviour when a user belongs to several groups on one safe","gives the user the cumulative permissions of all those groups",["gives only the permissions of the first group added","gives only permissions common to every group","blocks the user until the conflict is resolved","gives read-only access"]],
+ [T.S,"the 'Access Safe without confirmation' permission","lets a user bypass the Dual Control approval workflow (access is still audited)",["hides the user's activity from auditors","grants permanent ownership of the safe","disables session recording for that user","allows deleting the safe"]],
+ [T.S,"Object Level Access Control once enabled on a safe","can never be turned off again",["can be toggled freely at any time","is removed when the safe is emptied","only applies to file safes","expires after 90 days"]],
+ [T.M,"One-Time Passwords","reduce the risk of credential theft by replacing the password after use",["guarantee individual accountability","force two people to collude","speed up CPM scanning","remove the need for the PSM"]],
+ [T.M,"exclusive access (check-in / check-out)","ensures individual accountability by locking an account to one user at a time",["reduces the number of password changes","allows many users to share one session","forces two approvers for every request","disables auditing"]],
+ [T.M,"Dual Control","requires approval from another authorized user, so no single actor can act alone",["changes the password after every use","locks the account to one user","hides accounts from the accounts list","limits access to business hours"]],
+ [T.M,"the maximum number of authorization levels in Dual Control","is two",["is one","is three","is four","is unlimited"]],
+ [T.M,"Master Policy exceptions","are scoped by platform",["are scoped by safe", "are scoped by individual account", "are scoped by user group", "are scoped by network area"]],
+ [T.C,"a logon account","provides the credentials used to sign in to a machine before elevating to the privileged account",["stores the recovery key","approves dual-control requests","holds the license file","records the session"]],
+ [T.C,"a reconcile account","resets a privileged account's password when it is out of sync with the Vault",["signs in first and then elevates","approves access requests","generates the SSH key pair","hosts the HTML5 gateway"]],
+ [T.C,"the private SSH key managed by the CPM","is stored in the Vault and never on the target server",["is stored on the target server only", "is stored in both places", "is discarded after each rotation", "is kept in the PVWA cache"]],
+ [T.C,"the public SSH key managed by the CPM","is written to the target server's authorized_keys file",["is kept only inside the Vault", "is stored in the HSM", "is emailed to the account owner", "is embedded in the license file"]],
+ [T.U,"VAULT-level authorizations","can be granted to users only, and are set in the PrivateArk Client",["are granted to groups and inherited", "are managed from the PVWA reports page", "are assigned automatically by the CPM", "are inherited from safe membership"]],
+ [T.U,"the Master user","is the only user who can access every password in the Vault",["the Administrator user","any member of Vault Admins","any member of the Auditors group","the PVWA service user"],"subj"],
+ [T.U,"external (LDAP) users and groups","are synchronized with the directory daily between 01:00 and 05:00 by default",["are synchronized every two hours", "are synchronized only on demand", "are never synchronized automatically", "are synchronized at midnight exactly"]],
+ [T.R,"the Privileged Accounts Inventory report","lists the accounts stored in the Vault",["shows which accounts each user can reach","lists safes by location","shows PTA security events","lists installed licenses"]],
+ [T.R,"the Entitlement report","shows which accounts are accessible to each user",["lists every account in the Vault","shows accounts past their expiry date","lists active sessions","shows CPM errors"]],
+ [T.R,"the Privileged Accounts Compliance Status report","shows which accounts are non-compliant, e.g. past their expiration date",["lists every user in the Vault","shows license capacity","lists connection components","shows safe sizes"]],
+ [T.R,"the PVWAMonitor group","is by default the group authorized to generate reports in the PVWA",["Vault Admins","the Auditors group","PVWAUsers","the Security Admins group"],"subj"],
+ [T.V,"DBParm.ini","is the Vault's main configuration file",["tsparm.ini","PARAgent.ini","license.xml","vault.ini"],"subj"],
+ [T.V,"TSParm.ini","is where the location of the safes data is configured",["DBParm.ini","padr.ini","my.ini","user.ini"],"subj"],
+ [T.V,"each password inside the Vault","is encrypted with its own unique key",["is encrypted with the server key directly", "is encrypted with the recovery public key", "is stored as a salted hash", "is encrypted with the safe key only"]],
+ [T.V,"the keys required to start the PrivateArk Server service","are the server key and the recovery public key",["are the recovery private key and the safe key", "are the server key alone", "are the master password and the safe key", "are the license file and the server key"]],
+ [T.V,"the Event Notification Engine","sends email notifications about Vault activity",["rotates passwords","stores audit records","proxies sessions","builds reports"]],
+ [T.D,"padr.ini","is the configuration file for the Disaster Recovery service",["dbparm.ini","tsparm.ini","ClusterVault.ini","conf.ini"],"subj"],
+ [T.D,"the PrivateArk Server service on a standby DR Vault","is stopped while replication runs",["is running at all times", "is started only during backups", "is replaced by the CPM service", "is running in console mode"]],
+ [T.D,"PAReplicate","exports the Vault's encrypted safes so an external system can back them up to tape",["restores a corrupted safe","synchronizes two live Vaults","rotates the server key","scans for privileged accounts"]],
+ [T.O,"the Accounts Feed / Pending Accounts list","holds discovered accounts that have not been onboarded yet",["holds accounts added in the last 30 days", "holds accounts whose passwords failed to change", "holds users created by LDAP sync", "holds accounts scheduled for deletion"]],
+ [T.O,"an onboarding rule","applies both to accounts already pending and to accounts discovered in future",["only to accounts already pending","only to future discoveries","only to accounts you select manually","only to Windows accounts"]],
+ [T.O,"the account address field","accepts any name that the CPM server can resolve",["accepts only a fully qualified domain name", "accepts only an IP address", "accepts only a NetBIOS name", "accepts only a hostname in DNS"]],
+ [T.O,"a REST API integration with your provisioning system","is a proactive onboarding method because accounts are vaulted the moment they are created",["Accounts Discovery","a DNA scan","PTA detection of unmanaged accounts","the Password Upload Utility"],"subj"],
+ [T.A,"the diamond.log file","is PTA's main log, including its errors",["ITALog.log","PM_Error.log","WebApplication.log","ClusterVault.console.log"],"subj"],
+ [T.A,"PTA's response to a suspected credential theft","is to rotate the credential",["to add the account to the pending list","to reconcile the credential","to delete the account","to disable the safe"]],
+ [T.A,"PTA's response to an unmanaged privileged account","is to add it to the pending accounts list",["to rotate the credential","to terminate the session","to revoke the user's license","to email the account owner"]],
+ [T.P,"PSMConnect","is the user that end-user sessions use to connect to the PSM server",["PSMAdminConnect","PSMGwUser","PSMMaster","Shadowuser"],"subj"],
+ [T.P,"PSMAdminConnect","is the user used for live monitoring of an active session",["PSMConnect","PSMGwUser","PSMMaster","the target account itself"],"subj"],
+ [T.P,"the PSM-SSH connection component","is required to connect to UNIX/Linux targets through the PSM",["PSM-RDP","PSM-SQLPlus","PSM-OS390","PSM-WinSCP"],"subj"],
+ [T.P,"the Auditors group","is the membership required to view session recordings",["Vault Admins","PVWAMonitor","Security Admins","Operators"],"subj"],
+];
+function genExamStart(){
+  const total=65;
+  app.innerHTML=`
+  <div class="card" style="text-align:center">
+    <h2 style="margin-bottom:6px">✨ Generating your exam</h2>
+    <div class="sub" id="genMsg">Building a fact model…</div>
+    <div class="bar" style="margin:16px 0"><i id="genBar" style="width:0%"></i></div>
+    <div class="small" id="genCount">0 / ${total} questions written</div>
+  </div>`;
+  window.scrollTo(0,0);
+  const msgs=["Building a fact model…","Writing question stems…","Inventing plausible distractors…","Balancing topics…","Shuffling and proofreading…"];
+  let p=0;
+  const tick=setInterval(()=>{
+    p+=Math.random()*13+5;
+    if(p>=100){
+      p=100;clearInterval(tick);
+      document.getElementById("genBar").style.width="100%";
+      document.getElementById("genCount").textContent=total+" / "+total+" questions written";
+      document.getElementById("genMsg").textContent="Ready — good luck!";
+      setTimeout(()=>{
+        const qs=buildGeneratedExam(total);
+        sess={title:"Generated Exam",qs,i:0,answered:false,results:[],defer:true,nolabel:!!S.examNoLabel,
+          deadline:Date.now()+90*60*1000,tick:null};
+        sess.tick=setInterval(updateTimer,1000);
+        renderQ();
+      },550);
+      return;
+    }
+    document.getElementById("genBar").style.width=p+"%";
+    document.getElementById("genCount").textContent=Math.round(total*p/100)+" / "+total+" questions written";
+    document.getElementById("genMsg").textContent=msgs[Math.min(msgs.length-1,Math.floor(p/20))];
+  },130);
+}
+let GID=1;
+function genOne(f,styleHint){
+  // f = [topic, subject, truePredicate, distractors, shape]
+  // shape "subj" => the distractors are alternative NAMES for the subject
+  //                 (question asks "Which one <predicate>?")
+  // otherwise    => the distractors are alternative PREDICATES for the subject
+  const topic=f[0],subject=f[1],truth=f[2],wrongs=f[3],subj=f[4]==="subj";
+  const ref=REFT[topic]||null;
+  const style=styleHint!==undefined?styleHint:Math.floor(Math.random()*2);
+  if(style===0){
+    // multiple choice
+    if(subj){
+      // options are proper names (files, users, groups) — keep their exact casing
+      const opts=shuffle([subject,...shuffle(wrongs).slice(0,3)]);
+      return {n:"G"+(GID++),t:topic,y:"mc",gen:true,
+        q:"Which of the following "+truth+"?",
+        o:opts.slice(),a:[opts.indexOf(subject)],
+        e:cap(subject)+" "+truth+".",r:ref};
+    }
+    const opts=shuffle([truth,...shuffle(wrongs).slice(0,3)]);
+    return {n:"G"+(GID++),t:topic,y:"mc",gen:true,
+      q:"Which statement about "+subject+" is correct?",
+      o:opts.map(cap),a:[opts.indexOf(truth)],
+      e:cap(subject)+" "+truth+".",r:ref};
+  }
+  // true / false — half the time we assert something false
+  const useTruth=Math.random()<0.5;
+  if(subj){
+    const who=useTruth?subject:shuffle(wrongs)[0];
+    return {n:"G"+(GID++),t:topic,y:"mc",gen:true,
+      q:cap(who)+" "+truth+".",o:["TRUE","FALSE"],a:[useTruth?0:1],
+      e:useTruth?("Correct — "+cap(subject)+" "+truth+"."):("False. It is "+subject+" that "+truth+"."),r:ref};
+  }
+  const claim=useTruth?truth:shuffle(wrongs)[0];
+  return {n:"G"+(GID++),t:topic,y:"mc",gen:true,
+    q:cap(subject)+" "+claim+".",o:["TRUE","FALSE"],a:[useTruth?0:1],
+    e:useTruth?("Correct — "+cap(subject)+" "+truth+"."):("False — "+subject+" actually "+truth+"."),r:ref};
+}
+function buildGeneratedExam(count){
+  GID=1;
+  const out=[];
+  // one pass over every fact (shuffled), then top up with fresh variants
+  for(const f of shuffle(FACTS)){
+    if(out.length>=count)break;
+    out.push(genOne(f));
+  }
+  while(out.length<count){
+    const f=FACTS[Math.floor(Math.random()*FACTS.length)];
+    out.push(genOne(f));
+  }
+  return shuffle(out).slice(0,count);
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function marLabel(mins){return mins>0?(mins%60===0?(mins/60)+(mins===60?" hour":" hours"):mins+" min"):"no timer"}
 function marathonSetup(){
   const m=S.marathon;
@@ -572,7 +755,7 @@ function renderQ(){
   sess.cursor=(q.y==="mc"||q.y==="multi")?0:-1;
   let body="";
   if(q.y==="mc"||q.y==="multi"){
-    body=q.o.map((op,i)=>`<button class="opt" id="opt${i}" onclick="pickOpt(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(op)}</button>`).join("");
+    body=q.o.map((op,i)=>`<button class="opt" id="opt${i}" onclick="pickOpt(${i})">${sess.nolabel?"":`<span class="lt">${LETTERS[i]}.</span>`}${esc(op)}</button>`).join("");
   }else if(q.y==="order"){
     sess.disp=shuffle(q.o.map((_,i)=>i));
     body=`<div class="hint">Tap the steps in the correct order. Tap a placed step to remove it.</div><div class="seqzone" id="seq"></div><div id="bank"></div>`;
@@ -586,7 +769,7 @@ function renderQ(){
   <div class="card">
     <div class="qmeta">
       <span class="tag">${esc(sess.title)}</span>
-      <span class="tag">Q${q.n} · ${esc(q.t)}</span>
+      <span class="tag">${sess.nolabel?esc(q.t):"Q"+q.n+" · "+esc(q.t)}</span>
       <span style="flex:1"></span>
       <span>${sess.i+1} / ${sess.qs.length}</span>
       ${sess.setmode?`<span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ ${sess.i}/${sess.qs.length} in a row</span>`:""}
@@ -647,7 +830,7 @@ function grade(q){
   return false;
 }
 function answerText(q){
-  if(q.y==="mc"||q.y==="multi")return q.a.map(i=>LETTERS[i]+". "+q.o[i]).join("  ·  ");
+  if(q.y==="mc"||q.y==="multi")return q.a.map(i=>(sess&&sess.nolabel?"":LETTERS[i]+". ")+q.o[i]).join("  ·  ");
   if(q.y==="order")return q.o.map((s,i)=>(i+1)+". "+s).join("\n");
   if(q.y==="match")return q.p.map(p=>p[0]+" → "+p[1]).join("\n");
   return"";
@@ -740,11 +923,16 @@ function finish(){
   const pct=total?Math.round(100*correct/total):0;
   const missed=res.filter(r=>!r.ok).map(r=>r.n);
   const isExam=sess.defer;
+  const isGen=sess.qs.some(q=>q.gen);
+  const nolab=!!sess.nolabel;
+  // generated questions only exist in this session, so resolve from it first
+  const look={};sess.qs.forEach(q=>look[q.n]=q);
+  const getQ=n=>look[n]||byN[n];
   const pass=pct>=70;
   const perTopic={};
-  res.forEach(r=>{const q=byN[r.n];perTopic[q.t]=perTopic[q.t]||{c:0,t:0};perTopic[q.t].t++;if(r.ok)perTopic[q.t].c++});
+  res.forEach(r=>{const q=getQ(r.n);if(!q)return;perTopic[q.t]=perTopic[q.t]||{c:0,t:0};perTopic[q.t].t++;if(r.ok)perTopic[q.t].c++});
   const topicHtml=Object.entries(perTopic).map(([t,v])=>`<div class="trow"><div class="tname"><b>${esc(t)}</b><div class="bar" style="margin-top:5px"><i style="width:${Math.round(100*v.c/v.t)}%"></i></div></div><span class="small">${v.c}/${v.t}</span></div>`).join("");
-  const missedHtml=missed.map(n=>{const q=byN[n];return`<div class="card"><div class="qmeta"><span class="tag">Q${q.n} · ${esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>`}).join("");
+  const missedHtml=missed.map(n=>{const q=getQ(n);if(!q)return"";return`<div class="card"><div class="qmeta"><span class="tag">${nolab||q.gen?esc(q.t):"Q"+q.n+" · "+esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>`}).join("");
   sess.tick=null;const missedCopy=missed.slice();sess=null;
   app.innerHTML=`
   <div class="card" style="text-align:center">
@@ -753,7 +941,7 @@ function finish(){
     <div>${correct} of ${total} correct</div>
     ${isExam?`<div class="passbadge ${pass?"pb-pass":"pb-fail"}">${pass?"PASS — at or above the 70% mark 🎉":"Below 70% — keep drilling"}</div>`:""}
     <div class="rowbtns" style="justify-content:center;margin-top:10px">
-      ${missedCopy.length?`<button class="btn" onclick='retry(${JSON.stringify(missedCopy)})'>Retry the ${missedCopy.length} missed</button>`:""}
+      ${isGen?`<button class="btn" onclick="genExamStart()">✨ Generate another exam</button>`:missedCopy.length?`<button class="btn" onclick='retry(${JSON.stringify(missedCopy)})'>Retry the ${missedCopy.length} missed</button>`:""}
       <button class="btn ghost" onclick="goHome()">Home</button>
     </div>
   </div>
@@ -857,13 +1045,33 @@ const L1STEPS=[
  {k:"mc",tag:"Warm-up",q:"A company keeps 4,000 admin passwords in a shared spreadsheet. What's the single biggest problem?",
    o:["The file could get large and slow","Anyone with the file has every password, forever, with no record of who used what","Excel isn't meant for IT teams","The passwords are hard to type"],a:1,
    e:"That's the whole reason PAM exists: privileged secrets need to be encrypted, access-controlled, rotated, and audited. A spreadsheet gives you none of that.",okw:"Exactly"},
- {k:"match",q:"Match each CyberArk component to its job.",
+ {k:"discover",h:"Meet the five — tap each one",
+   sub:"Nothing to get right yet. Tap each card to see what it does. (You'll put them to work in a moment.)",
+   cards:[
+    {n:"Digital Vault",i:"🗄️",w:"The encrypted safe-deposit box.",d:"Every password, key and recording ultimately lives here. Hardened, encrypted, and the single source of truth. Nothing else stores secrets."},
+    {n:"PVWA",i:"🖥️",w:"The website you log into.",d:"Password Vault Web Access — the front door for humans. You browse accounts, request access, click Connect, and run reports here."},
+    {n:"CPM",i:"🔄",w:"The password robot.",d:"Central Policy Manager — logs into target systems on a schedule to change, verify and reconcile passwords so no human has to."},
+    {n:"PSM",i:"🎥",w:"The chaperone with a camera.",d:"Privileged Session Manager — sits between you and the server. It injects the password (you never see it) and records the whole session."},
+    {n:"PTA",i:"🚨",w:"The security guard.",d:"Privileged Threat Analytics — watches for attacks and odd behavior (like a stolen credential) and can automatically rotate a password or kill a session."},
+   ],
+   e:"That's the whole cast. Notice the split: the Vault stores, PVWA is the face, CPM handles passwords, PSM handles sessions, PTA handles threats."},
+ {k:"dragdrop",q:"Now build it. Drag each component into the right slot.",
+   sub:"Drag with the mouse, or tap a component then tap a slot. Keyboard: Tab to move, Enter to pick up / drop.",
+   slots:[
+    {label:"Stores every secret, encrypted",answer:"Digital Vault"},
+    {label:"Where the user logs in and clicks Connect",answer:"PVWA"},
+    {label:"Rotates passwords on target systems",answer:"CPM"},
+    {label:"Records the session & hides the password",answer:"PSM"},
+    {label:"Detects attacks and auto-responds",answer:"PTA"},
+   ],
+   e:"You just assembled the PAM architecture from memory — that's the model you'll reason from for the rest of the course."},
+ {k:"match",q:"Quick consolidation — match each component to its job.",
    pairs:[["Digital Vault","Encrypted store — the single source of truth for every secret"],
           ["PVWA","The web UI where users log in, request access & click to connect"],
           ["CPM","Automatically changes, verifies & reconciles passwords"],
           ["PSM","Proxies & records sessions so the password never reaches the user"],
           ["PTA","Watches for attacks & risky behavior, and can auto-respond"]],
-   e:"These five power almost every exam question: the Vault stores, PVWA is the face, CPM manages passwords, PSM manages sessions, PTA watches for threats."},
+   e:"Same five, worded the way the exam words them. The Vault stores, PVWA is the face, CPM manages passwords, PSM manages sessions, PTA watches for threats."},
  {k:"order",q:"Trace what happens when a user clicks \"Connect\" on an account. Put the steps in order.",
    steps:["User logs into the PVWA","User clicks Connect on an account","PVWA hands the request to the PSM","PSM retrieves the credential from the Vault","PSM opens the session to the target and records it"],
    e:"The user never sees or types the password — the PSM injects it and records everything. That's session isolation, the chief benefit of PSM."},
@@ -903,8 +1111,19 @@ function renderL1(){
   }else if(s.k==="mc"){
     const lead=s.lead?`<div class="hint" style="color:var(--mut)">${esc(s.lead)}</div>`:"";
     const tag=s.tag?`<span class="tag" style="margin-bottom:8px;display:inline-block">${esc(s.tag)}</span>`:"";
-    const opts=s.o.map((o,i)=>`<button class="opt" id="lo${i}" onclick="lPick(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(o)}</button>`).join("");
+    const opts=s.o.map((o,i)=>`<button class="opt" id="lo${i}" onclick="lPickOpt(${i})"><span class="lt">${LETTERS[i]}.</span>${esc(o)}</button>`).join("");
     lShell(`${tag}${lead}<div class="qtext">${esc(s.q)}</div>${opts}<div class="kbhint"><kbd>1</kbd>–<kbd>${s.o.length}</kbd> pick · <kbd>enter</kbd> continue</div>`,"");
+  }else if(s.k==="discover"){
+    LS.opened={};
+    lShell(`<h2>${esc(s.h)}</h2><div class="sub">${esc(s.sub)}</div>`+
+      s.cards.map((c,i)=>`<button class="dcard" id="dc${i}" onclick="lOpenCard(${i})"><div class="dh"><span class="em">${c.i}</span><span>${esc(c.n)}</span><span class="dw">${esc(c.w)}</span></div><div class="dd">${esc(c.d)}</div></button>`).join(""),
+      `<button class="btn" id="dbtn" onclick="lNext()" disabled>Tap all 5 to continue</button>`);
+  }else if(s.k==="dragdrop"){
+    LS.place={};LS.pick=null;
+    LS.pool=shuffle(s.slots.map(x=>x.answer));
+    lShell(`<div class="qtext">${esc(s.q)}</div><div class="hint" style="color:var(--mut)">${esc(s.sub)}</div><div id="ddslots"></div><div style="margin-top:12px"><div class="small" style="margin-bottom:4px">Components</div><div id="ddpool" style="display:flex;flex-wrap:wrap"></div></div>`,
+      `<button class="btn" id="ddbtn" onclick="lCheckDD()" disabled>Check →</button>`);
+    lRenderDD();
   }else if(s.k==="match"){
     const rights=shuffle([...new Set(s.pairs.map(p=>p[1]))]);
     lShell(`<div class="qtext">${esc(s.q)}</div><div class="hint">Pick the right job for each. Then Check.</div>`+
@@ -925,11 +1144,84 @@ function renderL1(){
       `<button class="btn" onclick="startQuick()">Practice with a quick quiz →</button><button class="btn ghost" onclick="learnMenu()">Back to course</button>`);
   }
 }
-function lPick(i){
+function lPickOpt(i){
   const s=L1STEPS[LS.i];if(LS.answered)return;LS.answered=true;
   const ok=i===s.a;
   s.o.forEach((_,j)=>{const el=document.getElementById('lo'+j);el.disabled=true;el.classList.remove('cur');if(j===s.a)el.classList.add('ok');else if(j===i)el.classList.add('bad');});
   document.getElementById('lfb').innerHTML=`<div class="fb ${ok?'good':'badf'}"><div class="verdict ${ok?'g':'b'}">${ok?'✓ '+(s.okw||'Correct'):'✗ Not quite'}</div><div class="exp">${esc(s.e)}</div></div>`;
+  document.getElementById('lfoot').innerHTML=`<button class="btn" onclick="lNext()">Continue →</button>`;
+  document.querySelector('#lfoot .btn').focus();
+}
+function lOpenCard(i){
+  const el=document.getElementById('dc'+i);
+  el.classList.toggle('open');
+  LS.opened[i]=true;
+  const s=L1STEPS[LS.i];
+  const all=s.cards.every((_,k)=>LS.opened[k]);
+  const b=document.getElementById('dbtn');
+  if(all&&b){b.disabled=false;b.textContent='Got it — let me build it →';}
+}
+// ---- drag & drop builder ----
+function lRenderDD(){
+  const s=L1STEPS[LS.i];
+  const slots=document.getElementById('ddslots'),pool=document.getElementById('ddpool');
+  slots.innerHTML=s.slots.map((sl,i)=>{
+    const v=LS.place[i];
+    return `<div class="slot" id="sl${i}" ondragover="lDragOver(event,${i})" ondragleave="lDragLeave(${i})" ondrop="lDrop(event,${i})">
+      <div class="sl">${esc(sl.label)}</div>
+      <button class="slotbtn ${v?'':'empty'}" onclick="lSlotClick(${i})">${v?esc(v):'drop here'}</button>
+    </div>`;
+  }).join("");
+  pool.innerHTML=LS.pool.map((name,i)=>{
+    const used=Object.values(LS.place).includes(name);
+    return `<button class="chip2 ${used?'used':''} ${LS.pick===name?'picked':''}" draggable="${!used}" ondragstart="lDragStart(event,'${esc(name)}')" onclick="lPickChip('${esc(name)}')" ${used?'disabled':''}>${esc(name)}</button>`;
+  }).join("");
+  const filled=Object.keys(LS.place).length===s.slots.length;
+  const b=document.getElementById('ddbtn');if(b)b.disabled=LS.answered||!filled;
+}
+function lDragStart(e,name){LS.pick=name;try{e.dataTransfer.setData('text/plain',name);e.dataTransfer.effectAllowed='move';}catch(x){}}
+function lDragOver(e,i){if(LS.answered)return;e.preventDefault();const el=document.getElementById('sl'+i);if(el)el.classList.add('over');}
+function lDragLeave(i){const el=document.getElementById('sl'+i);if(el)el.classList.remove('over');}
+function lDrop(e,i){
+  if(LS.answered)return;e.preventDefault();
+  let name="";try{name=e.dataTransfer.getData('text/plain');}catch(x){}
+  if(!name)name=LS.pick;
+  if(!name)return;
+  lAssign(i,name);
+}
+function lPickChip(name){
+  if(LS.answered)return;
+  if(LS.pick===name){LS.pick=null;lRenderDD();return}
+  LS.pick=name;
+  // if a slot is empty, hint by just highlighting; user taps slot next
+  lRenderDD();
+}
+function lSlotClick(i){
+  if(LS.answered)return;
+  if(LS.pick){lAssign(i,LS.pick);return}
+  // tapping a filled slot with nothing picked clears it
+  if(LS.place[i]){delete LS.place[i];lRenderDD();}
+}
+function lAssign(i,name){
+  // remove this component from any other slot, then place
+  Object.keys(LS.place).forEach(k=>{if(LS.place[k]===name)delete LS.place[k]});
+  LS.place[i]=name;LS.pick=null;
+  lRenderDD();
+}
+function lCheckDD(){
+  const s=L1STEPS[LS.i];
+  if(LS.answered||Object.keys(LS.place).length!==s.slots.length)return;
+  LS.answered=true;
+  let allok=true;
+  s.slots.forEach((sl,i)=>{
+    const el=document.getElementById('sl'+i);
+    const ok=LS.place[i]===sl.answer;
+    if(!ok)allok=false;
+    el.classList.remove('over');el.classList.add(ok?'ok':'bad');
+    el.querySelector('.slotbtn').disabled=true;
+  });
+  document.querySelectorAll('#ddpool .chip2').forEach(b=>b.disabled=true);
+  document.getElementById('lfb').innerHTML=`<div class="fb ${allok?'good':'badf'}"><div class="verdict ${allok?'g':'b'}">${allok?'✓ Architecture built correctly':'Not quite — here it is'}</div>${allok?'':'<div class="small" style="margin-top:6px;line-height:1.8">'+s.slots.map(sl=>esc(sl.label)+' → <b>'+esc(sl.answer)+'</b>').join('<br>')+'</div>'}<div class="exp" style="margin-top:8px">${esc(s.e)}</div></div>`;
   document.getElementById('lfoot').innerHTML=`<button class="btn" onclick="lNext()">Continue →</button>`;
   document.querySelector('#lfoot .btn').focus();
 }
@@ -963,15 +1255,29 @@ function lNext(){LS.i++;renderL1();}
 // lesson keyboard: number keys pick, enter/space advance
 document.addEventListener("keydown",e=>{
   if(sess||!LS)return;
-  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+  const tag=e.target&&e.target.tagName;
   const s=L1STEPS[LS.i];if(!s)return;
-  if(s.k==="mc"&&!LS.answered&&e.key>="1"&&e.key<="9"){const i=+e.key-1;if(i<s.o.length){lPick(i);}return;}
-  if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){const b=document.querySelector('#lfoot .btn');if(b){e.preventDefault();b.click();}}
+  // Inside a dropdown: arrows/space change the value natively; Enter submits the step.
+  if(tag==="SELECT"){
+    if(e.key==="Enter"){const b=document.querySelector('#lfoot .btn');if(b&&!b.disabled){e.preventDefault();b.click();}}
+    return;
+  }
+  if(tag==="INPUT"||tag==="TEXTAREA")return;
+  if(s.k==="mc"&&!LS.answered&&e.key>="1"&&e.key<="9"){const i=+e.key-1;if(i<s.o.length){lPickOpt(i);}return;}
+  // On a focused button, let the browser activate it (don't also fire the footer button).
+  if(tag==="BUTTON"&&(e.key==="Enter"||e.key===" "||e.key==="Spacebar"))return;
+  if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){const b=document.querySelector('#lfoot .btn');if(b&&!b.disabled){e.preventDefault();b.click();}}
 });
 /* ============================================================== */
 document.addEventListener("keydown",e=>{
   if(!sess)return;
-  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return; // don't hijack form fields
+  const tag=e.target&&e.target.tagName;
+  // Inside a dropdown (match questions): arrows/space pick a value natively; Enter submits.
+  if(tag==="SELECT"){
+    if(e.key==="Enter"){const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click();}}
+    return;
+  }
+  if(tag==="INPUT"||tag==="TEXTAREA")return;
   const q=sess.qs[sess.i];
   const isOpt=q&&(q.y==="mc"||q.y==="multi");
   if(e.key>="1"&&e.key<="9"){if(isOpt&&!sess.answered){const i=+e.key-1;if(i<q.o.length){sess.cursor=i;pickOpt(i)}}return;}
@@ -984,9 +1290,10 @@ document.addEventListener("keydown",e=>{
       else pickOpt(sess.cursor);
       return;
     }
+    if(tag==="BUTTON")return; // let the focused button handle its own space
     const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click();return;}
   }
-  if(e.key==="Enter"){const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click()}}
+  if(e.key==="Enter"){if(tag==="BUTTON")return;const b=document.getElementById("submitBtn");if(b&&!b.disabled){e.preventDefault();b.click()}}
 });
 /* ---- optional sign-in & cross-device progress sync (Puter.js) ----
    Loads the Puter SDK at runtime; if it can't load (offline, blocked),
