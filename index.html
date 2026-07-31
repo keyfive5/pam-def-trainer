@@ -374,6 +374,58 @@ let S={};try{S=JSON.parse(localStorage.getItem(LSKEY)||"{}")}catch(e){}
 S.stats=S.stats||{};
 S.sets=S.sets||{cleared:{},best:{},cur:0};
 S.learn=S.learn||{done:{}};
+S.exam=S.exam||null;
+/* The 7 content areas printed on the real PAM-DEF score report, mapped to the
+   topics used in this app so a score report can drive targeted practice. */
+const EXAMDOMAINS=[
+ {id:"d1",n:"Onboard accounts",topics:[T.O],
+  focus:["Discovery (Accounts Discovery, DNA, auto-detection) and what each can/can't find",
+         "Pending Accounts / Accounts Feed and onboarding rules (they apply to pending AND future finds)",
+         "Bulk onboarding: the file format, mandatory fields (Safe + Platform + platform-required props), and the permissions bulk upload needs",
+         "The Password Upload Utility and the REST onboarding API (proactive vs reactive onboarding)",
+         "Discovery scan prerequisites: CPM Scanner, machine list, read-only AD account"]},
+ {id:"d2",n:"Manage the application",topics:[T.V],
+  focus:["Component roles: Vault, PVWA, CPM, PSM, PTA — what each does and what it never does",
+         "Vault services (PrivateArk Server vs PrivateArk Database vs ENE) and what each is for",
+         "Configuration files: DBParm.ini (main), TSParm.ini (safes location), PARAgent.ini, license.xml",
+         "Licensing: where license.xml goes and how it's applied",
+         "System Health dashboard and why components show disconnected"]},
+ {id:"d3",n:"Ongoing maintenance & troubleshooting",topics:[T.V,T.D],
+  focus:["Log files by component — which log to open for which failure (PSMConsole/PSMTrace, CyberArk.WebApplication/WebConsole, diamond.log, VaultDB, PM_Error, ClusterVault.console, ITALog)",
+         "Changing debug levels WITHOUT restarting the Vault (PARAgent, PrivateArk Server Central Administration)",
+         "Backup & restore: PAReplicate, PARestore, CAVaultManager, and disk-space requirements",
+         "DR: padr.ini, FailoverMode, AllowFailback, which services run on a standby DR Vault, and the failback procedure",
+         "HA cluster: ClusterVault.ini, heartbeat/failover behaviour",
+         "Reading common errors (e.g. 'station is suspended', winRc=5 access denied)"]},
+ {id:"d4",n:"Configure and manage passwords",topics:[T.C,T.M],
+  focus:["CPM timing parameters: Interval vs ImmediateInterval vs HeadStartInterval vs MinValidityPeriod",
+         "Change / verify / reconcile — what each does and the time-window params (VF*/RC* FromHour, ToHour, ExecutionDays)",
+         "Logon vs reconcile accounts and the su-to-root flow",
+         "Platform settings vs Master Policy — which setting lives where",
+         "SSH key management: private key in the Vault, public key on the target"]},
+ {id:"d5",n:"Manage security and audit functions",topics:[T.S,T.R,T.A],
+  focus:["Safe member permissions in detail — especially Use vs Retrieve vs List, and which combination hides the password",
+         "Object Level Access Control (and that it can't be turned off once enabled)",
+         "Dual Control, approvers, and 'Access Safe without confirmation'",
+         "Reports: Inventory vs Compliance Status vs Entitlement vs Activity, who can run them (PVWAMonitor), and which come from PrivateArk instead",
+         "PTA: what each detection needs (Network Sensor / agent) and each automatic remediation",
+         "Auditors group, View Audit, and what auditors can reach"]},
+ {id:"d6",n:"Configure session management",topics:[T.P],
+  focus:["PSM architecture: it's a proxy — nothing installs on the target",
+         "PSMConnect vs PSMAdminConnect (end user vs live monitoring)",
+         "Connection components (PSM-RDP, PSM-SSH, PSM-WinSCP, PSM-SQLPlus) and when a platform needs which",
+         "Recording types (video, SSH text, universal keystrokes, Windows events) and where they're enabled/disabled — per PLATFORM",
+         "Where recordings are stored (SessionRecorderSafe) and who can view them",
+         "HTML5 gateway configuration and ad-hoc / Secure Connect"]},
+ {id:"d7",n:"Configure user management",topics:[T.U],
+  focus:["Vault authorizations vs Safe authorizations — who they can be granted to and where they're set",
+         "LDAP integration end to end: the CA certificate for LDAPS, port 636, hosts, and Directory Mappings",
+         "Directory mapping order, mapping authorizations, and how to delegate rights (e.g. Activate Users)",
+         "User types and which interfaces each may use; restricting users to PVWA/PACLI",
+         "Predefined users and groups (Master, Administrator, Auditors, Vault Admins) and what each really can do",
+         "Adding users/groups: PrivateArk Client vs PVWA vs REST vs PACLI, and updating group membership (Member Of)",
+         "Time restrictions on logon, and suspended users"]},
+];
 const save=()=>{try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){}};
 const stat=n=>S.stats[n]||{box:0,seen:0,c:0,w:0};
 function setStat(n,ok){
@@ -437,6 +489,7 @@ function home(){
     </div>
     <div class="bar"><i style="width:${pct}%"></i></div>
   </div>
+  <button class="mode" style="width:100%;border-color:${S.exam?"var(--warn)":"var(--br)"}" onclick="scoreMenu()"><span class="ic">📋</span><b>My Exam Score Report ${S.exam?`<span style='color:var(--warn);font-size:13px'>· plan ready</span>`:`<span class='small'>· didn't pass? start here</span>`}</b><small>${S.exam?`Last attempt: <b>${S.exam.score}%</b> vs ${S.exam.pass}% needed — weakest area: <b>${weakestName()}</b>. Open your plan.`:"Type in the content-area scores from your Pearson VUE report and get a ranked plan: what to fix first, why you lost the marks, and one-tap drills for each weak area."}</small></button>
   <button class="mode" style="width:100%;border-color:var(--ac);background:linear-gradient(180deg,#1a2242,#151c30)" onclick="learnMenu()"><span class="ic">🎓</span><b>Learn CyberArk — Interactive Course ${S.learn&&S.learn.done&&S.learn.done.l1?"<span style='color:var(--ok);font-size:13px'>· Lesson 1 ✓</span>":"<span style='color:var(--warn);font-size:13px'>· New</span>"}</b><small>The only hands-on CyberArk course: you learn by doing — sort, sequence, teach it back, and recall. No lectures. Start with Lesson 1: Meet the PAM components.</small></button>
   <div class="grid">
     <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
@@ -989,6 +1042,100 @@ function renderBrowse(){
     <div class="small">${pool.length} question${pool.length===1?"":"s"}</div>
   </div>${cards}`;
   window.scrollTo(0,0);
+}
+/* ============ Score report analyzer (after a failed attempt) ============ */
+function weakestName(){
+  if(!S.exam)return"";
+  const d=EXAMDOMAINS.map(x=>({n:x.n,v:S.exam.areas[x.id]})).filter(x=>typeof x.v==="number").sort((a,b)=>a.v-b.v)[0];
+  return d?d.n:"";
+}
+function domainMastery(d){ // current mastery of this domain from your practice stats
+  const pool=QUESTIONS.filter(q=>d.topics.includes(q.t));
+  if(!pool.length)return{m:0,t:0,pct:0};
+  let m=0;pool.forEach(q=>{const s=S.stats[q.n];if(s&&s.box>=3)m++});
+  return{m,t:pool.length,pct:Math.round(100*m/pool.length)};
+}
+function scoreMenu(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  if(S.exam){scorePlan();return}
+  scoreForm();
+}
+function scoreForm(){
+  const e=S.exam||{areas:{}};
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">📋 Enter your score report</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="sub">Didn't pass? Type the numbers straight off your Pearson VUE score report. Nothing leaves your device — it's used to build a ranked study plan and to point the drills at the areas that actually cost you the exam.</div>
+    <div class="mrow"><div class="ml">Your overall score (%)</div><input class="search" id="exScore" type="number" min="0" max="100" style="max-width:140px;margin:0" value="${e.score!=null?e.score:""}" placeholder="60"></div>
+    <div class="mrow"><div class="ml">Passing score (%)</div><input class="search" id="exPass" type="number" min="0" max="100" style="max-width:140px;margin:0" value="${e.pass!=null?e.pass:69}" placeholder="69"></div>
+    <h2 style="margin-top:18px">Content areas</h2>
+    <div class="small" style="margin-bottom:8px">Copy each number from the CONTENT AREAS list on your report. Leave blank if your report doesn't show one.</div>
+    ${EXAMDOMAINS.map(d=>`<div class="mrow"><div class="ml">${esc(d.n)}</div><input class="search" id="ex_${d.id}" type="number" min="0" max="100" style="max-width:140px;margin:0" value="${e.areas&&e.areas[d.id]!=null?e.areas[d.id]:""}" placeholder="0–100"></div>`).join("")}
+    <div class="rowbtns"><button class="btn" onclick="saveScore()">Build my study plan →</button>${S.exam?`<button class="btn ghost" onclick="scorePlan()">Cancel</button>`:""}</div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+function saveScore(){
+  const num=id=>{const v=document.getElementById(id).value.trim();return v===""?null:Math.max(0,Math.min(100,parseFloat(v)))};
+  const areas={};EXAMDOMAINS.forEach(d=>{const v=num("ex_"+d.id);if(v!=null)areas[d.id]=v});
+  const score=num("exScore"),pass=num("exPass");
+  if(score==null||!Object.keys(areas).length){alert("Enter at least your overall score and one content area.");return}
+  S.exam={score,pass:pass==null?69:pass,areas,when:Date.now()};
+  save();pushCloud();
+  scorePlan();
+}
+function scorePlan(){
+  const E=S.exam;
+  const gap=Math.max(0,(E.pass||69)-E.score);
+  const rows=EXAMDOMAINS.map(d=>({d,v:E.areas[d.id]})).filter(x=>typeof x.v==="number").sort((a,b)=>a.v-b.v);
+  const weak=rows.filter(x=>x.v<70), ok=rows.filter(x=>x.v>=70);
+  const band=v=>v<40?["Critical","var(--bad)"]:v<70?["Needs work","var(--warn)"]:["Solid","var(--ok)"];
+  const card=(x,i)=>{
+    const [lab,col]=band(x.v);
+    const mast=domainMastery(x.d);
+    return `<div class="card">
+      <div class="qmeta"><span class="tag" style="color:${col};border-color:${col}">${x.v}% · ${lab}</span><span class="tag">Priority ${i+1}</span><span style="flex:1"></span><span class="small">${mast.m}/${mast.t} practice Qs mastered</span></div>
+      <h2 style="margin:2px 0 6px">${esc(x.d.n)}</h2>
+      <div class="bar" style="margin-bottom:10px"><i style="width:${x.v}%;background:${col}"></i></div>
+      <div class="small" style="margin-bottom:6px"><b>What the exam wants here:</b></div>
+      <ul style="margin:0 0 10px 18px;padding:0;font-size:14px;color:#c6cde4;line-height:1.6">${x.d.focus.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
+      <div class="rowbtns"><button class="btn" onclick="drillDomain('${x.d.id}')">Drill this area (20 Q)</button><button class="btn ghost" onclick="cramDomain('${x.d.id}')">Read the cards</button></div>
+    </div>`;
+  };
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">📋 Your retake plan</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="scoreForm()">✎ edit scores</span><span class="tag" style="cursor:pointer" onclick="goHome()">← Home</span></div>
+    <div class="statline">
+      <div><b style="color:var(--bad)">${E.score}%</b><span>your score</span></div>
+      <div><b>${E.pass}%</b><span>needed</span></div>
+      <div><b style="color:var(--warn)">${gap} pts</b><span>short</span></div>
+    </div>
+    <div class="sub" style="margin-top:6px">${gap<=10?`You were <b>${gap} points</b> away. That gap is almost entirely in the areas below — fixing the weakest two would have carried you past the line.`:`Focus on the red areas first; they're where the marks are.`}</div>
+    ${weak.length?`<div class="small" style="margin-top:10px">⚠ <b>${weak.length} area${weak.length>1?"s":""} under 70%.</b> Work top-down — the list is ordered by how badly it hurt you.</div>`:""}
+  </div>
+  <h2 style="margin:16px 4px 4px">Fix these, in this order</h2>
+  ${weak.map(card).join("")}
+  ${ok.length?`<div class="card"><h2>Already solid — keep warm</h2>${ok.map(x=>`<div class="trow"><div class="tname"><b>${esc(x.d.n)}</b><div class="bar" style="margin-top:5px"><i style="width:${x.v}%;background:var(--ok)"></i></div></div><span class="small">${x.v}%</span><button class="tbtn" onclick="drillDomain('${x.d.id}')">Drill</button></div>`).join("")}</div>`:""}
+  <div class="card">
+    <h2>How to actually close the gap</h2>
+    <div class="small" style="line-height:1.75">
+      <b>1. Stop re-reading questions you already know.</b> Recognising a question you've seen is not the same as knowing the fact — the real exam rewords everything. Use <b>Generate a fresh exam</b> (Exam Simulator) with <b>shuffle answers</b> and <b>hide letters</b> on; it phrases things differently every time, so it tests the fact instead of your memory of the option layout.<br><br>
+      <b>2. Drill the red areas above, not the whole bank.</b> Your strong areas are already paying out — extra marks are only available where you're weak.<br><br>
+      <b>3. For each red area, read the bullets above and look up anything you can't explain out loud.</b> Every question links to the official CyberArk docs page (📖) — that's the source the exam is written from.<br><br>
+      <b>4. Re-test with a generated exam.</b> If you can pass an exam made of questions you've literally never seen, you know the material rather than the bank.
+    </div>
+  </div>
+  <div style="text-align:center"><a class="reset" onclick="if(confirm('Clear your saved score report?')){delete S.exam;save();goHome()}">Clear score report</a></div>`;
+  window.scrollTo(0,0);
+}
+function drillDomain(id){
+  const d=EXAMDOMAINS.find(x=>x.id===id);
+  const pool=QUESTIONS.filter(q=>d.topics.includes(q.t));
+  begin({title:d.n,pool,count:Math.min(20,pool.length),defer:false});
+}
+function cramDomain(id){
+  const d=EXAMDOMAINS.find(x=>x.id===id);
+  browse(d.topics[0]);
 }
 /* ================= Learn (interactive course) ================= */
 const CURRICULUM=[
