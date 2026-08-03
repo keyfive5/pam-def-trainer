@@ -110,6 +110,17 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .chip2:hover{border-color:var(--ac)}
 .chip2.picked{border-color:var(--ac);background:#24356b}
 .chip2.used{opacity:.35;cursor:default}
+.vwrap{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:14px;overflow:hidden;border:1px solid var(--br);margin-bottom:12px}
+.vwrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.vfall{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:18px;color:var(--mut);font-size:14px}
+.cpt{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--br);color:var(--tx);padding:12px 14px;border-radius:12px;margin:8px 0;font:inherit;cursor:pointer}
+.cpt:disabled{opacity:.45;cursor:default}
+.cpt.done{border-color:var(--ok)}
+.cpt .ct{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
+.cpt .cn{background:#0e1530;border:1px solid var(--br);border-radius:8px;padding:2px 8px;font-size:12px;color:var(--ac);font-variant-numeric:tabular-nums}
+.cpt .cs{margin-left:auto;font-size:12px;color:var(--mut)}
+.badge{border:1px solid var(--ok);background:rgba(52,211,153,.1);border-radius:14px;padding:16px;text-align:center}
+.badge .bt{font-weight:800;color:var(--ok);font-size:17px}
 .ref{margin-top:10px;font-size:13px}
 .ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
 .ref a:hover{border-bottom-color:var(--ac)}
@@ -490,7 +501,7 @@ function home(){
     <div class="bar"><i style="width:${pct}%"></i></div>
   </div>
   <button class="mode" style="width:100%;border-color:${S.exam?"var(--warn)":"var(--br)"}" onclick="scoreMenu()"><span class="ic">📋</span><b>My Exam Score Report ${S.exam?`<span style='color:var(--warn);font-size:13px'>· plan ready</span>`:`<span class='small'>· didn't pass? start here</span>`}</b><small>${S.exam?`Last attempt: <b>${S.exam.score}%</b> vs ${S.exam.pass}% needed — weakest area: <b>${weakestName()}</b>. Open your plan.`:"Type in the content-area scores from your Pearson VUE report and get a ranked plan: what to fix first, why you lost the marks, and one-tap drills for each weak area."}</small></button>
-  <button class="mode" style="width:100%;border-color:var(--ac);background:linear-gradient(180deg,#1a2242,#151c30)" onclick="learnMenu()"><span class="ic">🎓</span><b>Learn CyberArk — Interactive Course ${S.learn&&S.learn.done&&S.learn.done.l1?"<span style='color:var(--ok);font-size:13px'>· Lesson 1 ✓</span>":"<span style='color:var(--warn);font-size:13px'>· New</span>"}</b><small>The only hands-on CyberArk course: you learn by doing — sort, sequence, teach it back, and recall. No lectures. Start with Lesson 1: Meet the PAM components.</small></button>
+  <button class="mode" style="width:100%;border-color:var(--ac);background:linear-gradient(180deg,#1a2242,#151c30)" onclick="learnMenu()"><span class="ic">🎓</span><b>Learn CyberArk — Interactive Course ${S.learn&&S.learn.done&&S.learn.done.v1?"<span style='color:var(--ok);font-size:13px'>· Lesson 1 ✓</span>":"<span style='color:var(--warn);font-size:13px'>· New</span>"}</b><small>Video lessons woven with hands-on practice: watch, hit checkpoints inside the video, then prove it from memory. Starts with 🎬 <b>What is Privileged Access Management?</b></small></button>
   <div class="grid">
     <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
     <button class="mode" onclick="startSmart()"><span class="ic">🧠</span><b>Smart Review</b><small>20 questions · drills your misses & unseen first (spaced repetition)</small></button>
@@ -1140,6 +1151,7 @@ function cramDomain(id){
 /* ================= Learn (interactive course) ================= */
 const CURRICULUM=[
  {u:"Unit 1 · Foundations",lessons:[
+   {id:"v1",t:"What is Privileged Access Management?",d:"Video lesson + checkpoints — the foundation everything else builds on.",ready:true,video:true},
    {id:"l1",t:"Meet the PAM components",d:"The 5 pieces that make CyberArk work — and how they talk.",ready:true},
    {id:"l2",t:"Inside the Vault",d:"Encryption layers, keys, and why the Vault is the source of truth.",ready:false},
    {id:"l3",t:"Safes & permissions",d:"Who can see what, and the cumulative-permissions rule.",ready:false},
@@ -1175,12 +1187,16 @@ const CURRICULUM=[
 ];
 function learnMenu(){
   if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  if(VS&&VS.poll)clearInterval(VS.poll);VS=null;
   const done=(S.learn&&S.learn.done)||{};
   const units=CURRICULUM.map(u=>{
     const rows=u.lessons.map(l=>{
       if(l.ready){
         const d=done[l.id];
-        return `<div class="trow"><div class="tname"><b>${esc(l.t)}</b>${l.d?` <span class="small">· ${esc(l.d)}</span>`:""}${d?' <span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ done</span>':''}</div><button class="tbtn" onclick="startLesson('${l.id}')">${d?'Replay':'Start'}</button></div>`;
+        const badge=d?(d.watched!=null
+          ? ` <span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ verified · ${d.watched}% watched</span>`
+          : ' <span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ done</span>'):'';
+        return `<div class="trow"><div class="tname"><b>${l.video?"🎬 ":""}${esc(l.t)}</b>${l.d?` <span class="small">· ${esc(l.d)}</span>`:""}${badge}</div><button class="tbtn" onclick="startLesson('${l.id}')">${d?'Replay':'Start'}</button></div>`;
       }
       return `<div class="trow" style="opacity:.5"><div class="tname"><b>${esc(l.t)}</b>${l.d?` <span class="small">· ${esc(l.d)}</span>`:""}</div><span class="tag">🔒 Coming soon</span></div>`;
     }).join("");
@@ -1195,7 +1211,94 @@ function learnMenu(){
   <div class="foot">Course by M. Hasan Zafar · more lessons coming soon</div>`;
   window.scrollTo(0,0);
 }
-function startLesson(id){ if(id==="l1")startLesson1(); }
+function startLesson(id){ if(id==="l1")startLesson1(); else if(id==="v1")startVideoLesson(); }
+
+/* ============ Video lesson: watch-verified with in-video checkpoints ============
+   Checkpoints are positioned as a FRACTION of the video's real duration, so they
+   stay correct no matter how long the final cut is. Watch coverage is measured
+   from actual playback (YouTube IFrame API), not a timer you can leave running. */
+const VID={
+ id:"v1",
+ yt:"hE2sSdgxWC0",
+ title:"What is Privileged Access Management?",
+ by:"M. Hasan Zafar",
+ blurb:"Session 1 · Foundations — what a privileged account is, why attackers go after it, and what a PAM platform actually does about it.",
+ // p = point in the video (fraction) where this has just been explained
+ checkpoints:[
+  {p:0.14,label:"The privileged account",
+   q:"What actually separates a privileged account from a standard one?",
+   o:["A privileged account belongs to a manager rather than a regular employee",
+      "A privileged account can MODIFY the system — install software, change config, create or delete other accounts — not just consume it",
+      "A privileged account has a longer, more complex password",
+      "A privileged account can log in from outside the office"],a:1,
+   e:"The line is what the account can DO to the system. A standard account consumes the system (views, runs day-to-day work); a privileged account modifies it — software, configuration, policy, other accounts, and data normal users never see."},
+  {p:0.24,label:"Why attackers target them",
+   q:"From a threat-model point of view, why are privileged accounts \"the target, not a target\"?",
+   o:["They're easier to guess because admins reuse passwords",
+      "They're the only accounts that have multi-factor authentication",
+      "They give an attacker what they actually want: move laterally, disable logging, exfiltrate data, and persist in the environment",
+      "They're the accounts auditors check most often"],a:2,
+   e:"A standard account only gets an attacker your data. A privileged account gets them the ability to move laterally, disable logging, exfiltrate, and persist. One credential can be the difference between a contained incident and a full environment compromise — that's the asymmetry every PAM control exists to close."},
+  {p:0.36,label:"Interactive accounts",
+   q:"Which pair are INTERACTIVE privileged accounts (a human logs in with them)?",
+   o:["Hardcoded credentials and service accounts",
+      "Super-user accounts (root / local Administrator / sysadmin) and Active Directory domain admin accounts",
+      "Backup agents and monitoring tools",
+      "Credential providers and vault accounts"],a:1,
+   e:"Interactive = used directly by a human. Super-user is the highest-permission account on a box (root on Linux/Unix, local Administrator on Windows, sysadmin on most databases). A domain admin manages Active Directory itself — users, group policy, every joined server and workstation. One account, enormous blast radius."},
+  {p:0.46,label:"Non-interactive accounts",
+   q:"A backup agent authenticates to another system on its own, with no human at the keyboard. What secures that credential properly?",
+   o:["Hardcoding it in the script so it never has to be typed",
+      "Emailing it to whoever owns the server",
+      "A credential provider that fetches the secret from the vault on the script's or service's behalf, so it's never hardcoded in the clear",
+      "Giving the service account a longer password"],a:2,
+   e:"Non-interactive accounts (hardcoded credentials, service accounts) still carry elevated permission — which is exactly why they're dangerous if mishandled. Interactive accounts are secured through a portal a human logs into; non-interactive ones need a credential provider on top of the same vault, so nothing sits in plaintext in a repo or shared drive."},
+  {p:0.58,label:"Risk 1 — keys to the kingdom",
+   q:"An AD environment has a thousand servers and ten thousand user records managed by one domain admin account. If that account is compromised, what's the blast radius?",
+   o:["Only the server the attacker logged into",
+      "Everything the directory touches — the whole environment",
+      "Only the accounts created after the breach",
+      "Nothing, as long as the password is rotated afterwards"],a:1,
+   e:"That's the asymmetry: one credential → an entire environment. And it isn't unique to Active Directory — any server, database, or application with elevated access carries the same risk at a smaller scale, which is why organizations secure privileged accounts everywhere, not just the crown jewels."},
+  {p:0.68,label:"Risk 2 — scattered control",
+   q:"Why does control being scattered across teams become a real security problem at scale?",
+   o:["Different teams prefer different password lengths",
+      "It costs more to license each team separately",
+      "With every team holding its own credentials and every server its own local account list, nobody has a single view of who can do what — at scale it's close to unauditable",
+      "Teams end up rotating passwords too often"],a:2,
+   e:"Database, infrastructure and application teams each own their own accounts and none of it lives in one place. Ask an auditor to answer \"who touched what, and when\" across a few thousand servers and you see the problem — there's no single view."},
+  {p:0.78,label:"Risk 3 — no accountability",
+   q:"A team shares one privileged account and connects with a normal RDP/SSH client. Two people had the password. What do the logs prove?",
+   o:["Exactly which person performed each action",
+      "Only that the ACCOUNT performed the action — the human's identity is masked behind the account's",
+      "Nothing at all; no logs are produced",
+      "Which person logged in, but not what they did"],a:1,
+   e:"Account identity ≠ human identity. If two people know the password, the logs can't tell you which one was at the keyboard — a real gap during incident response, and exactly what session brokering and recording fix."},
+  {p:0.90,label:"What PAM does",
+   q:"Match the fix to the gap: which capability directly closes the accountability gap from Risk 3?",
+   o:["Automated password rotation",
+      "Multi-factor authentication",
+      "Session recording — the user connects through the PAM portal, which brokers the connection and records every session under that individual's identity",
+      "Just-in-time access"],a:2,
+   e:"Each capability closes a specific gap: rotation kills static standing credentials; the central vault + role-based access fixes scattered control; session recording + audit trails fix accountability; MFA adds verification exactly where privileged access is granted; just-in-time access expires automatically instead of sitting there indefinitely."},
+ ],
+ // asked after the video, from memory — synthesis rather than recognition
+ finals:[
+  {q:"Teach it back. A colleague asks: \"Why can't we just share the admin password in a spreadsheet and be careful?\" Which answer teaches it best?",
+   o:["\"Spreadsheets are hard to keep updated when people leave.\"",
+      "\"Because a static shared credential can't be rotated automatically, lives outside any vault so no one has a single view of who can use it, and hides who actually did what — the three exact problems PAM exists to fix.\"",
+      "\"Because auditors don't like spreadsheets.\""],a:1,
+   e:"That's the whole session in one sentence: standing credential (no rotation), scattered control (no single view), no accountability (account identity ≠ human identity)."},
+  {q:"From memory: name the capability that means a contractor's access disappears on a set date with no manual offboarding step.",
+   o:["Automated password rotation","Just-in-time / temporary access","Session recording","Role-based access control"],a:1,
+   e:"Just-in-time / temporary access — access is time-boxed and expires on its own, instead of standing access that someone has to remember to remove."},
+  {q:"From memory: in a PAM platform, who sees what?",
+   o:["Everyone sees every credential; the vault only logs usage",
+      "A standard user sees only the accounts they're authorized for, an admin sees policy and configuration, an auditor sees logs and recordings — not the credentials",
+      "Only administrators can see anything at all"],a:1,
+   e:"That's role-based access on top of the central vault: one encrypted place for credentials, permissions scoped to the person's role."},
+ ]
+};
 
 // ---- Lesson 1: Meet the PAM components ----
 const L1STEPS=[
@@ -1249,8 +1352,234 @@ const L1STEPS=[
  {k:"mc",tag:"Recall 3 of 3",q:"Where are all secrets ultimately stored?",o:["On the PVWA server","In the CPM cache","In the Digital Vault","On each target machine"],a:2,e:"The Digital Vault — encrypted, hardened, the single source of truth."},
  {k:"done"},
 ];
+let VS=null; // video-lesson state
+function startVideoLesson(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  const saved=(S.learn.done&&S.learn.done[VID.id])||null;
+  VS={player:null,dur:0,seen:{},cov:0,open:null,done:{},ytOk:null,poll:null,phase:"watch",fi:0,fAns:false,prev:saved};
+  renderVideo();
+  bootYT();
+}
+function vCoverage(){ // fraction of 5-second buckets actually played
+  if(!VS.dur)return 0;
+  const total=Math.max(1,Math.floor(VS.dur/5));
+  return Math.min(1,Object.keys(VS.seen).length/total);
+}
+function bootYT(){
+  const mount=()=>{
+    try{
+      VS.player=new YT.Player('ytp',{
+        videoId:VID.yt,
+        playerVars:{rel:0,modestbranding:1,playsinline:1},
+        events:{
+          onReady:(e)=>{VS.ytOk=true;VS.dur=e.target.getDuration()||0;startPoll();renderVideo();},
+          onStateChange:()=>{},
+          onError:()=>{VS.ytOk=false;renderVideo();}
+        }
+      });
+    }catch(err){VS.ytOk=false;renderVideo();}
+  };
+  if(window.YT&&window.YT.Player){mount();return}
+  const prev=window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady=()=>{if(prev)try{prev()}catch(e){};mount()};
+  if(!document.getElementById('ytapi')){
+    const s=document.createElement('script');
+    s.id='ytapi';s.src='https://www.youtube.com/iframe_api';
+    s.onerror=()=>{VS.ytOk=false;renderVideo()};
+    document.head.appendChild(s);
+  }
+  // if the API never arrives (offline / blocked / in-app webview), fall back
+  setTimeout(()=>{if(VS&&VS.ytOk===null){VS.ytOk=false;renderVideo()}},9000);
+}
+function startPoll(){
+  clearInterval(VS.poll);
+  VS.poll=setInterval(()=>{
+    if(!VS||!VS.player||!VS.player.getCurrentTime)return;
+    let t=0;try{t=VS.player.getCurrentTime()||0;VS.dur=VS.player.getDuration()||VS.dur;}catch(e){return}
+    if(VS.player.getPlayerState&&VS.player.getPlayerState()===1){ // only count while PLAYING
+      VS.seen[Math.floor(t/5)]=1;
+    }
+    const cov=vCoverage();
+    const changed=Math.abs(cov-VS.cov)>0.004;
+    VS.cov=cov;VS.now=t;
+    if(changed||VS.needsRedraw){VS.needsRedraw=false;paintWatch();}
+  },1000);
+}
+function vUnlocked(c){
+  if(VS.ytOk===false)return true;              // can't verify → don't block learning
+  if(!VS.dur)return false;
+  return (VS.now||0)>=c.p*VS.dur-2 || VS.cov>=c.p;
+}
+function vAllAnswered(){return VID.checkpoints.every((c,i)=>VS.done[i])}
+function renderVideo(){
+  const doneAll=vAllAnswered();
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><span class="tag">🎬 Lesson 1 · Video</span><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="exitVideo()">✕ exit</span></div>
+    <h1 style="margin:2px 0 4px">${esc(VID.title)}</h1>
+    <div class="sub">${esc(VID.blurb)} <span class="small">Taught by ${esc(VID.by)}.</span></div>
+    <div class="vwrap"><div id="ytp"></div><div class="vfall" id="vfall" style="display:none">
+        <div>Can't play the video here.</div>
+        <a class="btn" style="text-decoration:none" href="https://www.youtube.com/watch?v=${VID.yt}" target="_blank" rel="noopener noreferrer">▶ Watch on YouTube</a>
+        <div class="small">Come back and answer the checkpoints when you're done.</div>
+      </div></div>
+    <div id="watchbar"></div>
+  </div>
+  <div class="card">
+    <h2>Checkpoints</h2>
+    <div class="sub" id="cphint"></div>
+    <div id="cplist"></div>
+  </div>
+  <div id="vfinal"></div>`;
+  paintWatch();
+  window.scrollTo(0,0);
+}
+function paintWatch(){
+  if(!VS)return;
+  const fall=document.getElementById('vfall');
+  if(fall)fall.style.display=VS.ytOk===false?'flex':'none';
+  const wb=document.getElementById('watchbar');
+  if(wb){
+    if(VS.ytOk===false){
+      wb.innerHTML=`<div class="small">Watch progress can't be tracked in this player — answer the checkpoints below once you've watched.</div>`;
+    }else{
+      const pct=Math.round(VS.cov*100);
+      wb.innerHTML=`<div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="small" style="margin-top:6px">Watched <b>${pct}%</b> of the video${pct<70?` · checkpoints unlock as you reach them`:` <span style="color:var(--ok)">· watch requirement met ✓</span>`}</div>`;
+    }
+  }
+  const hint=document.getElementById('cphint');
+  if(hint)hint.textContent=VS.ytOk===false
+    ? "Answer each one to prove you took the lesson in."
+    : "Each checkpoint unlocks when you reach that part of the video. Answer it while it's fresh — that's what makes it stick.";
+  const list=document.getElementById('cplist');
+  if(list){
+    list.innerHTML=VID.checkpoints.map((c,i)=>{
+      const un=vUnlocked(c),dn=VS.done[i];
+      const mm=VS.dur?fmtT(c.p*VS.dur):"";
+      return `<button class="cpt ${dn?'done':''}" ${un?'':'disabled'} onclick="openCP(${i})">
+        <div class="ct"><span class="cn">${mm||('#'+(i+1))}</span><span>${esc(c.label)}</span>
+        <span class="cs">${dn?'✓ answered':un?'answer now →':'🔒 keep watching'}</span></div>
+      </button>`;
+    }).join("");
+  }
+  paintFinalGate();
+}
+function fmtT(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function paintFinalGate(){
+  const f=document.getElementById('vfinal');if(!f)return;
+  if(VS.phase!=="watch")return;
+  const need=VS.ytOk===false?0:0.7;
+  const okWatch=VS.cov>=need;
+  const okCp=vAllAnswered();
+  if(okWatch&&okCp){
+    f.innerHTML=`<div class="card" style="text-align:center">
+      <div class="big">🧠</div><h2>Ready for the recall test</h2>
+      <div class="sub">Three questions from memory — no video, no options to recognise. This is what proves you learned it.</div>
+      <button class="btn" onclick="startFinals()">Start the recall test →</button></div>`;
+  }else{
+    f.innerHTML=`<div class="card"><div class="small">To finish this lesson: ${need?`watch at least <b>70%</b> of the video (${Math.round(VS.cov*100)}% so far)`:`watch the video`} and answer <b>all ${VID.checkpoints.length} checkpoints</b> (${Object.keys(VS.done).length} done).</div></div>`;
+  }
+}
+function openCP(i){
+  const c=VID.checkpoints[i];
+  if(!vUnlocked(c))return;
+  VS.open=i;VS.cpAnswered=false;
+  if(VS.player&&VS.player.pauseVideo)try{VS.player.pauseVideo()}catch(e){}
+  const body=c.o.map((o,j)=>`<button class="opt" id="cpo${j}" onclick="answerCP(${i},${j})">${esc(o)}</button>`).join("");
+  const host=document.getElementById('cplist');
+  host.innerHTML=`<div class="card" style="margin:0">
+    <div class="qmeta"><span class="tag">${VS.dur?fmtT(c.p*VS.dur):'#'+(i+1)}</span><span class="tag">${esc(c.label)}</span></div>
+    <div class="qtext">${esc(c.q)}</div>${body}
+    <div id="cpfb"></div>
+    <div class="rowbtns" id="cpfoot"></div></div>`;
+  document.getElementById('cphint').textContent="Answer, then keep watching.";
+  host.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function answerCP(i,j){
+  if(VS.cpAnswered)return;VS.cpAnswered=true;
+  const c=VID.checkpoints[i],ok=j===c.a;
+  c.o.forEach((_,k)=>{const el=document.getElementById('cpo'+k);el.disabled=true;if(k===c.a)el.classList.add('ok');else if(k===j)el.classList.add('bad')});
+  document.getElementById('cpfb').innerHTML=`<div class="fb ${ok?'good':'badf'}"><div class="verdict ${ok?'g':'b'}">${ok?'✓ Correct':'✗ Not quite'}</div><div class="exp">${esc(c.e)}</div></div>`;
+  if(ok)VS.done[i]=1;
+  document.getElementById('cpfoot').innerHTML=`<button class="btn" onclick="closeCP()">${ok?'Back to the video →':'Got it — try again later'}</button>`;
+  document.querySelector('#cpfoot .btn').focus();
+  save();
+}
+function closeCP(){
+  VS.open=null;VS.needsRedraw=true;
+  renderVideoKeepPlayer();
+}
+function renderVideoKeepPlayer(){
+  // the player iframe must not be torn down, so only repaint the lists
+  const list=document.getElementById('cplist');
+  if(!list){renderVideo();return}
+  paintWatch();
+  if(VS.player&&VS.player.playVideo)try{VS.player.playVideo()}catch(e){}
+}
+function startFinals(){
+  VS.phase="finals";VS.fi=0;VS.fAns=false;
+  clearInterval(VS.poll);
+  renderFinal();
+}
+function renderFinal(){
+  const f=VID.finals[VS.fi];
+  VS.fAns=false;
+  app.innerHTML=`<div class="card">
+    <div class="qmeta"><span class="tag">🧠 Recall — from memory</span><span style="flex:1"></span><span>${VS.fi+1}/${VID.finals.length}</span><span class="tag" style="cursor:pointer" onclick="exitVideo()">✕ exit</span></div>
+    <div class="bar" style="margin-bottom:14px"><i style="width:${Math.round(100*VS.fi/VID.finals.length)}%"></i></div>
+    <div class="qtext">${esc(f.q)}</div>
+    ${f.o.map((o,i)=>`<button class="opt" id="fo${i}" onclick="answerFinal(${i})">${esc(o)}</button>`).join("")}
+    <div id="ffb"></div><div class="rowbtns" id="ffoot"></div>
+    <div class="kbhint"><kbd>1</kbd>–<kbd>${f.o.length}</kbd> pick · <kbd>enter</kbd> continue</div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+function answerFinal(i){
+  if(VS.fAns)return;VS.fAns=true;
+  const f=VID.finals[VS.fi],ok=i===f.a;
+  if(!VS.fScore)VS.fScore=0;if(ok)VS.fScore++;
+  f.o.forEach((_,k)=>{const el=document.getElementById('fo'+k);el.disabled=true;if(k===f.a)el.classList.add('ok');else if(k===i)el.classList.add('bad')});
+  document.getElementById('ffb').innerHTML=`<div class="fb ${ok?'good':'badf'}"><div class="verdict ${ok?'g':'b'}">${ok?'✓ Correct':'✗ Not quite'}</div><div class="exp">${esc(f.e)}</div></div>`;
+  const last=VS.fi+1>=VID.finals.length;
+  document.getElementById('ffoot').innerHTML=`<button class="btn" onclick="${last?'finishVideo()':'nextFinal()'}">${last?'Finish lesson →':'Next →'}</button>`;
+  document.querySelector('#ffoot .btn').focus();
+}
+function nextFinal(){VS.fi++;renderFinal();}
+function finishVideo(){
+  const pct=Math.round(VS.cov*100);
+  const rec={watched:pct,recall:VS.fScore+"/"+VID.finals.length,when:Date.now(),verified:VS.ytOk!==false};
+  S.learn.done[VID.id]=rec;save();pushCloud();
+  const d=new Date(rec.when).toLocaleDateString();
+  app.innerHTML=`
+  <div class="card" style="text-align:center">
+    <div class="big" style="color:var(--ok)">🎓</div>
+    <h1 style="margin:4px 0">Lesson 1 complete</h1>
+    <div class="sub">You watched the session and proved it with ${VID.checkpoints.length} in-video checkpoints and ${VID.finals.length} from-memory recall questions.</div>
+    <div class="badge" style="margin-top:12px">
+      <div class="bt">✓ Verified — Foundations of Privileged Access Management</div>
+      <div class="small" style="margin-top:6px">${rec.verified?`Watch-verified: <b>${pct}%</b> of the video actually played · `:``}Checkpoints ${VID.checkpoints.length}/${VID.checkpoints.length} · Recall ${rec.recall} · ${esc(d)}</div>
+      <div class="small" style="margin-top:4px">Taught by ${esc(VID.by)}</div>
+    </div>
+  </div>
+  <div class="card">
+    <b>What you can now explain without notes</b>
+    <div class="small" style="margin-top:6px;line-height:1.7">A privileged account modifies the system rather than just consuming it · why it's the specific target, not just a valuable one · interactive vs non-interactive accounts and why each is secured differently · the three risks (keys to the kingdom, scattered control, no accountability) · and the five capabilities that close them.</div>
+  </div>
+  <div class="card">
+    <b>Next</b>
+    <div class="small" style="margin-top:6px">Lesson 2 · <b>Meet the PAM components</b> takes these ideas into CyberArk itself — the Vault, PVWA, CPM, PSM and PTA.</div>
+    <div class="rowbtns"><button class="btn" onclick="startLesson1()">Start Lesson 2 →</button><button class="btn ghost" onclick="learnMenu()">Back to course</button></div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+function exitVideo(){
+  if(VS&&VS.poll)clearInterval(VS.poll);
+  if(VS&&VS.player&&VS.player.stopVideo)try{VS.player.stopVideo()}catch(e){}
+  VS=null;learnMenu();
+}
 let LS=null;
-function startLesson1(){LS={id:"l1",i:0,answered:false};renderL1();}
+function startLesson1(){VS=null;LS={id:"l1",i:0,answered:false};renderL1();}
 function lShell(body,footer){
   const n=L1STEPS.length;
   app.innerHTML=`
@@ -1414,6 +1743,16 @@ function lCheckOrder(){
 }
 function lNext(){LS.i++;renderL1();}
 // lesson keyboard: number keys pick, enter/space advance
+// video-lesson recall test: number keys pick, enter/space continues
+document.addEventListener("keydown",e=>{
+  if(sess||LS||!VS||VS.phase!=="finals")return;
+  const tag=e.target&&e.target.tagName;
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+  const f=VID.finals[VS.fi];if(!f)return;
+  if(!VS.fAns&&e.key>="1"&&e.key<="9"){const i=+e.key-1;if(i<f.o.length)answerFinal(i);return}
+  if(tag==="BUTTON"&&(e.key==="Enter"||e.key===" "))return;
+  if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){const b=document.querySelector('#ffoot .btn');if(b){e.preventDefault();b.click()}}
+});
 document.addEventListener("keydown",e=>{
   if(sess||!LS)return;
   const tag=e.target&&e.target.tagName;
