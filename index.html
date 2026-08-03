@@ -1372,12 +1372,14 @@ function bootYT(){
         videoId:VID.yt,
         playerVars:{rel:0,modestbranding:1,playsinline:1},
         events:{
-          onReady:(e)=>{VS.ytOk=true;VS.dur=e.target.getDuration()||0;startPoll();renderVideo();},
+          // NOTE: never call renderVideo() from here — it rebuilds the page and
+          // would destroy the iframe the API just mounted. Only repaint the lists.
+          onReady:(e)=>{VS.ytOk=true;VS.dur=e.target.getDuration()||0;startPoll();paintWatch();},
           onStateChange:()=>{},
-          onError:()=>{VS.ytOk=false;renderVideo();}
+          onError:()=>{VS.ytOk=false;paintWatch();}
         }
       });
-    }catch(err){VS.ytOk=false;renderVideo();}
+    }catch(err){VS.ytOk=false;paintWatch();}
   };
   if(window.YT&&window.YT.Player){mount();return}
   const prev=window.onYouTubeIframeAPIReady;
@@ -1385,11 +1387,11 @@ function bootYT(){
   if(!document.getElementById('ytapi')){
     const s=document.createElement('script');
     s.id='ytapi';s.src='https://www.youtube.com/iframe_api';
-    s.onerror=()=>{VS.ytOk=false;renderVideo()};
+    s.onerror=()=>{VS.ytOk=false;paintWatch()};
     document.head.appendChild(s);
   }
   // if the API never arrives (offline / blocked / in-app webview), fall back
-  setTimeout(()=>{if(VS&&VS.ytOk===null){VS.ytOk=false;renderVideo()}},9000);
+  setTimeout(()=>{if(VS&&VS.ytOk===null){VS.ytOk=false;paintWatch()}},9000);
 }
 function startPoll(){
   clearInterval(VS.poll);
