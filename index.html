@@ -475,7 +475,7 @@ function refHtml(q){const r=qref(q);return r?`<div class="ref">📖 <a href="${e
 function pvHtml(q){
   if(!q||!q.pv||!q.pv.yt)return"";
   const id="pv_"+q.n;
-  return `<div class="pv" id="${id}"><button class="pvbtn" onclick="togglePv('${id}','${q.pv.yt}')"><span class="pvi">\u{1F3A5}</span><span class="pvt"><b>Proof — see this demonstrated in a real lab</b><span>${esc(q.pv.t||"Watch the answer proven hands-on")}</span></span><span class="pvx">▸ watch</span></button><div class="pvbody"></div></div>`;
+  return `<div class="pv" id="${id}" onclick="event.stopPropagation()"><button class="pvbtn" onclick="togglePv('${id}','${q.pv.yt}')"><span class="pvi">\u{1F3A5}</span><span class="pvt"><b>Proof — see this demonstrated in a real lab</b><span>${esc(q.pv.t||"Watch the answer proven hands-on")}</span></span><span class="pvx">▸ watch</span></button><div class="pvbody"></div></div>`;
 }
 function togglePv(id,yt){
   const host=document.getElementById(id);if(!host)return;
