@@ -121,6 +121,16 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .cpt .cs{margin-left:auto;font-size:12px;color:var(--mut)}
 .badge{border:1px solid var(--ok);background:rgba(52,211,153,.1);border-radius:14px;padding:16px;text-align:center}
 .badge .bt{font-weight:800;color:var(--ok);font-size:17px}
+.pv{margin-top:12px}
+.pvbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card2);border:1px solid var(--ac);color:var(--tx);padding:10px 12px;border-radius:12px;cursor:pointer;font:inherit}
+.pvbtn:hover{background:#24356b}
+.pv.open .pvbtn{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.pvi{font-size:18px;line-height:1}
+.pvt{display:flex;flex-direction:column;gap:2px;line-height:1.3;min-width:0}
+.pvt b{font-size:14px}
+.pvt span{color:var(--mut);font-size:12px}
+.pvx{margin-left:auto;color:var(--ac);font-size:13px;white-space:nowrap}
+.pvbody:not(:empty){border:1px solid var(--ac);border-top:0;border-radius:0 0 12px 12px;padding:10px 12px 12px}
 .ref{margin-top:10px;font-size:13px}
 .ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
 .ref a:hover{border-bottom-color:var(--ac)}
@@ -142,7 +152,7 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 <script>
 const T={S:"Safes & Permissions",M:"Master Policy & Dual Control",C:"Platforms & CPM",P:"PSM & Sessions",A:"PTA & Monitoring",V:"Vault Admin & HA",D:"Backup & DR",U:"Users, LDAP & Auth",O:"Accounts & Onboarding",R:"Reports & Auditing"};
 const QUESTIONS=[
-{n:1,t:T.S,y:"mc",q:"If a user is a member of more than one group that has authorizations on a safe, by default that user is granted ________.",o:["the vault will not allow this situation to occur","only those permissions that exist on the group added to the safe first","only those permissions that exist in all groups to which the user belongs","the cumulative permissions of all groups to which that user belongs"],a:[3],e:"Default behavior = cumulative permissions of all groups. Only the safe's 'Exclusive' option restricts to the first-added group."},
+{n:1,t:T.S,y:"mc",q:"If a user is a member of more than one group that has authorizations on a safe, by default that user is granted ________.",o:["the vault will not allow this situation to occur","only those permissions that exist on the group added to the safe first","only those permissions that exist in all groups to which the user belongs","the cumulative permissions of all groups to which that user belongs"],a:[3],e:"Default behavior = cumulative permissions of all groups. Only the safe's 'Exclusive' option restricts to the first-added group.",pv:{yt:"qmSMmyv6kRY",t:"Built in a CyberArk home lab: one user, two groups, two different permission sets - see what the user actually ends up with."}},
 {n:2,t:T.U,y:"mc",q:"It is possible to control the hours of the day during which a user may log into the vault.",o:["TRUE","FALSE"],a:[0],e:"Time Restrictions let admins define the days and hours users (or groups) can access the Vault."},
 {n:3,t:T.U,y:"multi",q:"VAULT authorizations may be granted to ________.",o:["Vault Users","Vault Groups","LDAP Users","LDAP Groups"],a:[0,2],e:"Vault-level authorizations go to USERS only (not groups, not inherited) and are set via the PrivateArk Client. SAFE authorizations can go to users AND groups."},
 {n:4,t:T.C,y:"mc",q:"What is the purpose of the Interval setting in a CPM policy?",o:["To control how often the CPM looks for System Initiated CPM work","To control how often the CPM looks for User Initiated CPM work","To control how long the CPM rests between password changes","To control the maximum amount of time the CPM will wait for a password change to complete"],a:[0],e:"Interval = frequency (minutes) the CPM checks for SYSTEM-initiated work (scheduled changes/verifications/reconciles). User-initiated work is governed by ImmediateInterval."},
@@ -458,6 +468,22 @@ const REFT={
 };
 function qref(q){return q.r||REFT[q.t]||null}
 function refHtml(q){const r=qref(q);return r?`<div class="ref">📖 <a href="${esc(r[1])}" target="_blank" rel="noopener noreferrer">${esc(r[0])}</a></div>`:""}
+/* Proof videos: a question can carry pv:{yt,t} - a clip demonstrating the answer
+   in a real lab. The iframe is only created on click, so browsing 236 cards never
+   loads a player. Always paired with a plain YouTube link so it still works where
+   embedding is blocked (artifact CSP, offline, in-app webview). */
+function pvHtml(q){
+  if(!q||!q.pv||!q.pv.yt)return"";
+  const id="pv_"+q.n;
+  return `<div class="pv" id="${id}"><button class="pvbtn" onclick="togglePv('${id}','${q.pv.yt}')"><span class="pvi">\u{1F3A5}</span><span class="pvt"><b>Proof — see this demonstrated in a real lab</b><span>${esc(q.pv.t||"Watch the answer proven hands-on")}</span></span><span class="pvx">▸ watch</span></button><div class="pvbody"></div></div>`;
+}
+function togglePv(id,yt){
+  const host=document.getElementById(id);if(!host)return;
+  const body=host.querySelector(".pvbody"),arrow=host.querySelector(".pvx");
+  if(body.innerHTML){body.innerHTML="";arrow.textContent="▸ watch";host.classList.remove("open");return}
+  body.innerHTML=`<div class="vwrap" style="margin:0 0 8px"><iframe src="https://www.youtube.com/embed/${yt}?rel=0&modestbranding=1&playsinline=1" title="Proof video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="small">Video not loading? <a href="https://www.youtube.com/watch?v=${yt}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Watch it on YouTube</a> · demonstrated by M. Hasan Zafar</div>`;
+  arrow.textContent="▾ hide";host.classList.add("open");
+}
 const SETSIZE=65;
 const SETS=[];for(let i=0;i<QUESTIONS.length;i+=SETSIZE)SETS.push(QUESTIONS.slice(i,i+SETSIZE));
 const TOPICS=Object.values(T);
@@ -965,7 +991,7 @@ function showFeedback(q,ok){
     <div class="verdict ${ok?"g":"b"}">${ok?"✓ Correct":"✗ Incorrect"}</div>
     <div class="ans"><b>Answer:</b> <span style="white-space:pre-wrap">${esc(answerText(q))}</span></div>
     <div class="exp">${fmtExp(q.e)}</div>
-    ${refHtml(q)}
+    ${refHtml(q)}${pvHtml(q)}
     ${setNote}
   </div>`;
   const b=document.getElementById("submitBtn");
@@ -1010,7 +1036,7 @@ function finish(){
   const perTopic={};
   res.forEach(r=>{const q=getQ(r.n);if(!q)return;perTopic[q.t]=perTopic[q.t]||{c:0,t:0};perTopic[q.t].t++;if(r.ok)perTopic[q.t].c++});
   const topicHtml=Object.entries(perTopic).map(([t,v])=>`<div class="trow"><div class="tname"><b>${esc(t)}</b><div class="bar" style="margin-top:5px"><i style="width:${Math.round(100*v.c/v.t)}%"></i></div></div><span class="small">${v.c}/${v.t}</span></div>`).join("");
-  const missedHtml=missed.map(n=>{const q=getQ(n);if(!q)return"";return`<div class="card"><div class="qmeta"><span class="tag">${nolab||q.gen?esc(q.t):"Q"+q.n+" · "+esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>`}).join("");
+  const missedHtml=missed.map(n=>{const q=getQ(n);if(!q)return"";return`<div class="card"><div class="qmeta"><span class="tag">${nolab||q.gen?esc(q.t):"Q"+q.n+" · "+esc(q.t)}</span></div><div style="font-weight:600;margin-bottom:8px;white-space:pre-wrap">${esc(q.q)}</div><div class="small" style="color:var(--ok);white-space:pre-wrap"><b>Answer:</b> ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}${pvHtml(q)}</div>`}).join("");
   sess.tick=null;const missedCopy=missed.slice();sess=null;
   app.innerHTML=`
   <div class="card" style="text-align:center">
@@ -1041,7 +1067,7 @@ function renderBrowse(){
     return`<div class="card bcard" onclick="const r=this.querySelector('.rev');r.style.display=r.style.display==='block'?'none':'block'">
       <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span></div>
       <div style="font-weight:600;white-space:pre-wrap">${esc(q.q)}</div>
-      <div class="rev" style="display:none"><div class="a" style="white-space:pre-wrap">✔ ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}</div>
+      <div class="rev" style="display:none"><div class="a" style="white-space:pre-wrap">✔ ${esc(answerText(q))}</div><div class="small" style="margin-top:6px">${fmtExp(q.e)}</div>${refHtml(q)}${pvHtml(q)}</div>
     </div>`;
   }).join("");
   app.innerHTML=`
