@@ -131,6 +131,17 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .pvt span{color:var(--mut);font-size:12px}
 .pvx{margin-left:auto;color:var(--ac);font-size:13px;white-space:nowrap}
 .pvbody:not(:empty){border:1px solid var(--ac);border-top:0;border-radius:0 0 12px 12px;padding:10px 12px 12px}
+.sops{display:flex;flex-direction:column;gap:6px}
+.sop{display:flex;gap:9px;align-items:flex-start;background:var(--card2);border:1px solid var(--br);border-radius:10px;padding:9px 12px;font-size:14px;line-height:1.45}
+.sop.ok{border-color:var(--ok);background:rgba(52,211,153,.10)}
+.sop .lt{color:var(--ac);font-weight:700;flex:0 0 auto}
+.sop.ok .lt{color:var(--ok)}
+.sop .sck{margin-left:auto;color:var(--ok);font-weight:700;flex:0 0 auto}
+.sop .sarr{color:var(--mut);flex:0 0 auto}
+.pvthumb{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:1px solid var(--br);border-radius:14px;overflow:hidden;background:#0e1530;cursor:pointer}
+.pvthumb:hover{border-color:var(--ac)}
+.pvthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pvplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:99px;background:rgba(11,16,32,.78);border:1px solid var(--ac);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:20px;padding-left:3px}
 .ref{margin-top:10px;font-size:13px}
 .ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
 .ref a:hover{border-bottom-color:var(--ac)}
@@ -528,11 +539,13 @@ function home(){
   </div>
   <button class="mode" style="width:100%;border-color:${S.exam?"var(--warn)":"var(--br)"}" onclick="scoreMenu()"><span class="ic">📋</span><b>My Exam Score Report ${S.exam?`<span style='color:var(--warn);font-size:13px'>· plan ready</span>`:`<span class='small'>· didn't pass? start here</span>`}</b><small>${S.exam?`Last attempt: <b>${S.exam.score}%</b> vs ${S.exam.pass}% needed — weakest area: <b>${weakestName()}</b>. Open your plan.`:"Type in the content-area scores from your Pearson VUE report and get a ranked plan: what to fix first, why you lost the marks, and one-tap drills for each weak area."}</small></button>
   <button class="mode" style="width:100%;border-color:var(--ac);background:linear-gradient(180deg,#1a2242,#151c30)" onclick="learnMenu()"><span class="ic">🎓</span><b>Learn CyberArk — Interactive Course ${S.learn&&S.learn.done&&S.learn.done.v1&&S.learn.done.v2?"<span style='color:var(--ok);font-size:13px'>· 2 video lessons ✓</span>":S.learn&&S.learn.done&&S.learn.done.v1?"<span style='color:var(--ok);font-size:13px'>· Lesson 1 ✓ · Lesson 2 is new</span>":"<span style='color:var(--warn);font-size:13px'>· New</span>"}</b><small>Video lessons woven with hands-on practice: watch, hit checkpoints inside the video, then prove it from memory. 🎬 <b>What is Privileged Access Management?</b> then 🎬 <b>CyberArk Architecture: the core components</b>.</small></button>
+  <button class="mode" style="width:100%;border-color:var(--ac)" onclick="proofVideos()"><span class="ic">🎥</span><b>Proof Videos <span style='color:var(--ac);font-size:13px'>· ${pvList().length} answers proven in a real lab</span></b><small>Short clips built in a live CyberArk lab, showing the Vault actually behaving the way the question says it does. Watch them as a series here, or hit ▸ watch on any question that has one.</small></button>
   <div class="grid">
     <button class="mode" onclick="startQuick()"><span class="ic">⚡</span><b>Quick Quiz</b><small>10 questions · instant feedback · weighted to what you don't know yet</small></button>
     <button class="mode" onclick="startSmart()"><span class="ic">🧠</span><b>Smart Review</b><small>20 questions · drills your misses & unseen first (spaced repetition)</small></button>
     <button class="mode" onclick="examSetup()"><span class="ic">⏱️</span><b>Exam Simulator</b><small>65 questions · 90-minute timer · graded vs the 70% pass mark · options for unlabeled answers and a freshly generated exam</small></button>
     <button class="mode" onclick="browse('All')"><span class="ic">📚</span><b>Browse & Cram</b><small>Flashcard mode — flip through every question with answers & explanations</small></button>
+    <button class="mode" onclick="studySheet('All')"><span class="ic">📖</span><b>Study Sheet</b><small>Every question laid out flat with all of its options and the answer marked — read it start to finish, nothing to tap</small></button>
     <button class="mode" onclick="marathonSetup()"><span class="ic">🏁</span><b>Full Marathon</b><small>All ${QUESTIONS.length} questions in the original order · choose your own time limit · instant answers${S.marathon&&S.marathon.results&&S.marathon.results.length<QUESTIONS.length?` · <b style='color:var(--warn)'>resume at Q${S.marathon.results.length+1}</b>`:""}</small></button>
     <button class="mode" onclick="setsMenu()"><span class="ic">🎯</span><b>Sets of ${SETSIZE}</b><small>${SETS.length} ordered blocks · get every question in a block right <b>in a row</b>, then advance to the next — your block is saved, so you never drop back to Q1${setsClearedCount()?` · <b style='color:var(--ok)'>${setsClearedCount()}/${SETS.length} cleared</b>`:""}</small></button>
   </div>
@@ -1079,6 +1092,95 @@ function renderBrowse(){
     <div class="small">${pool.length} question${pool.length===1?"":"s"}</div>
   </div>${cards}`;
   window.scrollTo(0,0);
+}
+/* ============ Study Sheet ============
+   Browse & Cram hides the options behind a tap, which is right for self-testing but
+   useless when you want to READ the bank: what the distractors were, what shape a
+   question takes. The study sheet lays every question out flat - all options, the key
+   marked, explanation, doc link, proof video - so it can be scrolled start to end. */
+let shFilter="All",shSearch="";
+function studySheet(t){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  shFilter=t||"All";shSearch="";
+  renderSheet();
+}
+/* order/match questions store their options already in the correct answer, so every
+   row is the answer - mc/multi are the only types that carry distractors to mark. */
+function sheetOpts(q){
+  if(q.y==="mc"||q.y==="multi")return q.o.map((op,i)=>{
+    const ok=q.a.indexOf(i)>=0;
+    return `<div class="sop${ok?" ok":""}"><span class="lt">${LETTERS[i]}.</span><span>${esc(op)}</span>${ok?`<span class="sck">\u2713</span>`:""}</div>`;
+  }).join("");
+  if(q.y==="order")return q.o.map((st,i)=>`<div class="sop ok"><span class="lt">${i+1}.</span><span>${esc(st)}</span></div>`).join("");
+  if(q.y==="match")return q.p.map(pr=>`<div class="sop ok"><span>${esc(pr[0])}</span><span class="sarr">\u2192</span><span>${esc(pr[1])}</span></div>`).join("");
+  return"";
+}
+function sheetHay(q){return (q.q+" "+(q.o||[]).join(" ")+" "+(q.p||[]).map(x=>x.join(" ")).join(" ")+" "+(q.e||"")).toLowerCase()}
+function renderSheet(){
+  const chips=["All",...TOPICS].map(t=>`<span class="chip ${shFilter===t?"on":""}" onclick="shFilter='${esc(t)}';renderSheet()">${esc(t)}</span>`).join("");
+  const pool=QUESTIONS.filter(q=>(shFilter==="All"||q.t===shFilter)&&(!shSearch||sheetHay(q).indexOf(shSearch)>=0));
+  const kindOf=q=>q.y==="multi"?"Select all that apply":q.y==="order"?"Correct sequence":q.y==="match"?"Correct pairs":"";
+  const cards=pool.map(q=>{
+    const st=S.stats[q.n];const col=!st||!st.seen?"var(--mut)":st.box>=3?"var(--ok)":st.box>=2?"var(--warn)":"var(--bad)";
+    const k=kindOf(q);
+    return`<div class="card" id="sq${q.n}">
+      <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span>${k?`<span class="tag">${k}</span>`:""}${q.pv?`<span class="tag" style="border-color:var(--ac);color:var(--ac)">\u{1F3A5} proof video</span>`:""}</div>
+      <div style="font-weight:600;white-space:pre-wrap;margin-bottom:10px">${esc(q.q)}</div>
+      <div class="sops">${sheetOpts(q)}</div>
+      <div class="small" style="margin-top:10px;white-space:pre-wrap">${fmtExp(q.e)}</div>
+      ${refHtml(q)}${pvHtml(q)}
+    </div>`;
+  }).join("");
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">Study Sheet</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">\u2190 Home</span></div>
+    <div class="sub">Every question with all of its options, the correct one marked in green. Nothing to tap \u2014 just scroll. Dot: grey = unseen, red = struggling, amber = learning, green = mastered.</div>
+    <input class="search" placeholder="Search questions, options or explanations\u2026" value="${esc(shSearch)}" oninput="shSearch=this.value.toLowerCase();clearTimeout(window._st);window._st=setTimeout(()=>{renderSheet();const s=document.querySelector('.search');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)">
+    <div class="chips">${chips}</div>
+    <div class="small">${pool.length} question${pool.length===1?"":"s"}</div>
+  </div>${cards||`<div class="card"><div class="sub">Nothing matches that search.</div></div>`}`;
+  window.scrollTo(0,0);
+}
+/* Jump straight to one question in the sheet (used by the proof-video gallery). */
+function sheetJump(n){
+  studySheet("All");
+  const el=document.getElementById("sq"+n);
+  if(el){el.scrollIntoView({block:"start"});el.style.borderColor="var(--ac)"}
+}
+/* ============ Proof videos ============
+   Every question carrying pv:{yt,t}, collected in one place so the lab clips can be
+   watched as a series instead of being stumbled on one question at a time. Thumbnails
+   are plain <img>, so nothing loads a player until it is asked for. */
+function pvList(){return QUESTIONS.filter(q=>q.pv&&q.pv.yt)}
+function proofVideos(){
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  const pool=pvList();
+  const cards=pool.map(q=>`
+  <div class="card">
+    <div class="qmeta"><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span></div>
+    <div style="font-weight:600;white-space:pre-wrap;margin-bottom:6px">${esc(q.q)}</div>
+    <div class="small" style="color:var(--ok);white-space:pre-wrap;margin-bottom:10px">\u2714 ${esc(answerText(q))}</div>
+    <div id="pvg_${q.n}">
+      <button class="pvthumb" onclick="pvPlay('pvg_${q.n}','${q.pv.yt}')" title="Play">
+        <img src="https://i.ytimg.com/vi/${q.pv.yt}/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.display='none'">
+        <span class="pvplay">\u25B6</span>
+      </button>
+    </div>
+    <div class="small" style="margin-top:9px">${esc(q.pv.t||"")}</div>
+    <div class="small" style="margin-top:5px">Not playing here? <a href="https://www.youtube.com/watch?v=${q.pv.yt}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Watch it on YouTube</a> \u00B7 <a onclick="sheetJump(${q.n})" style="color:var(--ac);cursor:pointer">read Q${q.n} in the study sheet</a></div>
+  </div>`).join("");
+  app.innerHTML=`
+  <div class="card">
+    <div class="qmeta"><h2 style="margin:0">\u{1F3A5} Proof Videos</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">\u2190 Home</span></div>
+    <div class="sub">Answers demonstrated in a real CyberArk lab rather than just asserted \u2014 the Vault itself doing the thing the question asks about. Recorded by M. Hasan Zafar.</div>
+    <div class="small">${pool.length} question${pool.length===1?"":"s"} proven so far \u00B7 <a href="https://www.youtube.com/@HasanCyberArk" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">the channel</a></div>
+  </div>
+  ${cards||`<div class="card"><div class="sub">No proof videos yet \u2014 they show up here as they are recorded.</div></div>`}`;
+  window.scrollTo(0,0);
+}
+function pvPlay(id,yt){
+  const host=document.getElementById(id);if(!host)return;
+  host.innerHTML=`<div class="vwrap" style="margin:0"><iframe src="https://www.youtube.com/embed/${yt}?rel=0&modestbranding=1&playsinline=1&autoplay=1" title="Proof video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
 }
 /* ============ Score report analyzer (after a failed attempt) ============ */
 function weakestName(){
