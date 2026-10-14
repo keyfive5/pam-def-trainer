@@ -142,6 +142,17 @@ a.reset{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline
 .pvthumb:hover{border-color:var(--ac)}
 .pvthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .pvplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:99px;background:rgba(11,16,32,.78);border:1px solid var(--ac);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:20px;padding-left:3px}
+body.solo .top{display:none}
+body.solo .wrap{max-width:900px;padding-top:26px}
+body.solo .qtext{font-size:23px;line-height:1.4}
+body.solo .opt{font-size:17px;padding:15px 17px}
+body.solo .sop{font-size:16px}
+body.solo .fb .verdict{font-size:20px}
+body.solo .card{padding:24px}
+body.solo .kbhint{display:none}
+@media(max-width:560px){body.solo .qtext{font-size:19px}body.solo .opt{font-size:16px}body.solo .card{padding:18px}}
+.filmbtn{margin-left:auto;cursor:pointer;border-color:var(--ac);color:var(--ac)}
+.filmbtn:hover{background:#24356b}
 .ref{margin-top:10px;font-size:13px}
 .ref a{color:var(--ac);text-decoration:none;border-bottom:1px solid transparent}
 .ref a:hover{border-bottom-color:var(--ac)}
@@ -515,7 +526,7 @@ function weightedPick(pool,count){
   return out;
 }
 let sess=null;
-function goHome(){if(sess&&sess.tick)clearInterval(sess.tick);sess=null;home()}
+function goHome(){soloOff();if(sess&&sess.tick)clearInterval(sess.tick);sess=null;home()}
 function counts(pool){let seen=0,m=0;pool.forEach(q=>{const s=S.stats[q.n];if(s&&s.seen){seen++;if(s.box>=3)m++}});return{seen,m}}
 function home(){
   pill.textContent=QUESTIONS.length+" questions";
@@ -885,15 +896,15 @@ function renderQ(){
   app.innerHTML=`
   <div class="card">
     <div class="qmeta">
-      <span class="tag">${esc(sess.title)}</span>
+      ${sess.solo?"":`<span class="tag">${esc(sess.title)}</span>`}
       <span class="tag">${sess.nolabel?esc(q.t):"Q"+q.n+" · "+esc(q.t)}</span>
       <span style="flex:1"></span>
-      <span>${sess.i+1} / ${sess.qs.length}</span>
+      ${sess.solo?`<span class="tag" style="cursor:pointer" onclick="renderQ()">↺ another take</span><span class="tag" style="cursor:pointer" onclick="filmExit(${q.n})">← back to the sheet</span>`:`<span>${sess.i+1} / ${sess.qs.length}</span>`}
       ${sess.setmode?`<span class="tag" style="color:var(--ok);border-color:var(--ok)">✓ ${sess.i}/${sess.qs.length} in a row</span>`:""}
       ${sess.deadline?'<span class="timer" id="timer"></span>':""}
       ${sess.marathon?'<span class="tag" style="cursor:pointer" onclick="restartMarathon()">↺ restart</span>':""}
       ${sess.setmode?'<span class="tag" style="cursor:pointer" onclick="restartSet()">↺ restart</span>':""}
-      <span class="tag" style="cursor:pointer" onclick="quitConfirm()">✕ end</span>
+      ${sess.solo?"":`<span class="tag" style="cursor:pointer" onclick="quitConfirm()">✕ end</span>`}
     </div>
     <div class="qtext">${esc(q.q)}</div>
     ${multiHint}${body}
@@ -959,7 +970,7 @@ function submitA(){
   const ok=grade(q);
   sess.answered=true;sess.lastOk=ok;
   sess.results.push({n:q.n,ok});
-  setStat(q.n,ok);
+  if(!sess.solo)setStat(q.n,ok); // a staged take must not move the Leitner box
   if(sess.marathon)saveMarathon();
   if(sess.setmode){
     const reached=ok?sess.i+1:sess.i; // correct-in-a-row after this answer
@@ -970,6 +981,7 @@ function submitA(){
 }
 function afterFeedback(){
   if(!sess)return;
+  if(sess.solo){renderQ();return} // re-render = a fresh, unanswered take
   if(sess.setmode){
     if(!sess.lastOk){restartSet();return}
     if(sess.i+1>=sess.qs.length){setCleared();return}
@@ -997,7 +1009,7 @@ function showFeedback(q,ok){
       : `<div class="small warnnote" style="margin-top:8px">Streak broken at ${sess.i}/${sess.qs.length}. Restart the set and try again for the full run.</div>`;
     label=ok?(last?"🎉 Clear set":"Next →"):"↻ Restart set";
   }else{
-    label=last?"Finish":"Next →";
+    label=sess.solo?"↺ Another take":last?"Finish":"Next →";
   }
   const fb=document.getElementById("fb");
   fb.innerHTML=`<div class="fb ${ok?"good":"badf"}">
@@ -1068,7 +1080,7 @@ function finish(){
 }
 let bFilter="All",bSearch="";
 function browse(t){
-  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  soloOff();if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
   bFilter=t||"All";bSearch="";
   renderBrowse();
 }
@@ -1093,6 +1105,31 @@ function renderBrowse(){
   </div>${cards}`;
   window.scrollTo(0,0);
 }
+/* ============ Film mode ============
+   One question alone on screen, unanswered, with the page chrome stripped away - a clean
+   frame to record against. Answering it on camera at the end of a clip is the payoff: the
+   lab evidence, then the pick, then the verdict.
+   It reuses the quiz session machinery rather than reimplementing it, so order and match
+   questions behave exactly as they do in a real session. The one deliberate difference is
+   in submitA: a staged take must NOT write to the Leitner boxes, or re-recording a question
+   five times would mark it mastered. */
+function soloOff(){document.body.classList.remove("solo")}
+function filmQuestion(n){
+  const q=byN[n];if(!q)return;
+  if(sess&&sess.tick)clearInterval(sess.tick);
+  LS=null;
+  sess={title:"On camera",qs:[q],i:0,answered:false,results:[],deadline:0,tick:null,solo:true};
+  document.body.classList.add("solo");
+  renderQ();
+}
+/* Back to the sheet, keeping whatever topic/search was filtered, scrolled to the question. */
+function filmExit(n){
+  soloOff();
+  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;
+  renderSheet();
+  const el=document.getElementById("sq"+n);
+  if(el)el.scrollIntoView({block:"start"});
+}
 /* ============ Study Sheet ============
    Browse & Cram hides the options behind a tap, which is right for self-testing but
    useless when you want to READ the bank: what the distractors were, what shape a
@@ -1100,7 +1137,7 @@ function renderBrowse(){
    marked, explanation, doc link, proof video - so it can be scrolled start to end. */
 let shFilter="All",shSearch="";
 function studySheet(t){
-  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  soloOff();if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
   shFilter=t||"All";shSearch="";
   renderSheet();
 }
@@ -1124,7 +1161,7 @@ function renderSheet(){
     const st=S.stats[q.n];const col=!st||!st.seen?"var(--mut)":st.box>=3?"var(--ok)":st.box>=2?"var(--warn)":"var(--bad)";
     const k=kindOf(q);
     return`<div class="card" id="sq${q.n}">
-      <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span>${k?`<span class="tag">${k}</span>`:""}${q.pv?`<span class="tag" style="border-color:var(--ac);color:var(--ac)">\u{1F3A5} proof video</span>`:""}</div>
+      <div class="qmeta"><span class="dot" style="background:${col}"></span><span class="tag">Q${q.n}</span><span class="tag">${esc(q.t)}</span>${k?`<span class="tag">${k}</span>`:""}${q.pv?`<span class="tag" style="border-color:var(--ac);color:var(--ac)">\u{1F3A5} proof video</span>`:""}<span class="tag filmbtn" onclick="filmQuestion(${q.n})" title="Put this question alone on screen, unanswered">\u{1F3AC} film this</span></div>
       <div style="font-weight:600;white-space:pre-wrap;margin-bottom:10px">${esc(q.q)}</div>
       <div class="sops">${sheetOpts(q)}</div>
       <div class="small" style="margin-top:10px;white-space:pre-wrap">${fmtExp(q.e)}</div>
@@ -1134,7 +1171,7 @@ function renderSheet(){
   app.innerHTML=`
   <div class="card">
     <div class="qmeta"><h2 style="margin:0">Study Sheet</h2><span style="flex:1"></span><span class="tag" style="cursor:pointer" onclick="goHome()">\u2190 Home</span></div>
-    <div class="sub">Every question with all of its options, the correct one marked in green. Nothing to tap \u2014 just scroll. Dot: grey = unseen, red = struggling, amber = learning, green = mastered.</div>
+    <div class="sub">Every question with all of its options, the correct one marked in green. Nothing to tap \u2014 just scroll. Dot: grey = unseen, red = struggling, amber = learning, green = mastered.<br><b style="color:var(--ac)">\u{1F3AC} film this</b> puts one question alone on a clean screen with the answer hidden, ready to record against \u2014 pick it on camera at the end and it marks itself. Takes there don't touch your progress.</div>
     <input class="search" placeholder="Search questions, options or explanations\u2026" value="${esc(shSearch)}" oninput="shSearch=this.value.toLowerCase();clearTimeout(window._st);window._st=setTimeout(()=>{renderSheet();const s=document.querySelector('.search');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)">
     <div class="chips">${chips}</div>
     <div class="small">${pool.length} question${pool.length===1?"":"s"}</div>
@@ -1153,7 +1190,7 @@ function sheetJump(n){
    are plain <img>, so nothing loads a player until it is asked for. */
 function pvList(){return QUESTIONS.filter(q=>q.pv&&q.pv.yt)}
 function proofVideos(){
-  if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
+  soloOff();if(sess&&sess.tick)clearInterval(sess.tick);sess=null;LS=null;
   const pool=pvList();
   const cards=pool.map(q=>`
   <div class="card">
